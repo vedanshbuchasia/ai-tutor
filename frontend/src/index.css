@@ -9,6 +9,7 @@
   --chalk-cyan: #38bdf8;
   --chalk-green: #34d399;
   --chalk-gold: #fbbf24;
+  --chalk-rose: #fb7185;
   --text-muted: #94a3b8;
   --radius-lg: 14px;
   --radius-md: 8px;
@@ -40,7 +41,7 @@ body {
 .text-gold { color: var(--chalk-gold); }
 .text-cyan { color: var(--chalk-cyan); }
 
-/* App Container */
+/* Main Container */
 .personal-app-container {
   display: flex;
   flex-direction: column;
@@ -115,7 +116,7 @@ body {
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
 }
 
-/* Main Split Grid */
+/* 1-on-1 Layout Grid */
 .personal-main-grid {
   display: grid;
   grid-template-columns: 420px 1fr;
@@ -124,7 +125,7 @@ body {
   min-height: 0;
 }
 
-/* Left Panel: Avatar & Dialogue */
+/* Left Panel */
 .personal-avatar-panel {
   background: var(--bg-panel);
   border: 1px solid var(--border-slate);
@@ -136,7 +137,7 @@ body {
   min-height: 0;
 }
 
-/* 1. Student Mastery Card */
+/* Student Profile Card */
 .student-profile-card {
   background: var(--bg-card);
   border: 1px solid var(--border-slate);
@@ -197,71 +198,55 @@ body {
   transition: width 0.4s ease;
 }
 
-/* 2. Talking Teacher Avatar */
-.avatar-interaction-card {
+/* Animated Teacher Avatar */
+.animated-teacher-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   background: var(--bg-card);
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-slate);
 }
 
-.avatar-container {
+.avatar-svg-box {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 72px;
 }
 
-.tutor-avatar-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--chalk-cyan);
+.avatar-svg-box.active-lecturing {
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));
 }
 
-.avatar-container.speaking .tutor-avatar-img {
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
-}
-
-.speaking-wave-bars {
-  position: absolute;
-  bottom: -3px;
-  left: 50%;
-  transform: translateX(-50%);
+.teacher-badge-info {
   display: flex;
+  flex-direction: column;
   gap: 2px;
 }
 
-.speaking-wave-bars span {
-  width: 2.5px;
-  height: 8px;
-  background: var(--chalk-cyan);
-  border-radius: 2px;
-  animation: wave-bar 0.7s infinite alternate;
-}
-
-.speaking-wave-bars span:nth-child(2) { animation-delay: 0.2s; height: 11px; }
-.speaking-wave-bars span:nth-child(3) { animation-delay: 0.4s; height: 9px; }
-
-@keyframes wave-bar {
-  0% { transform: scaleY(0.4); }
-  100% { transform: scaleY(1.3); }
-}
-
-.avatar-meta h3 {
-  font-size: 0.9rem;
+.teacher-name {
+  font-size: 0.92rem;
   font-weight: 700;
+  color: #fff;
 }
 
-.teaching-status {
-  font-size: 0.7rem;
+.teacher-status {
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
-/* Status & Grounding Bar */
+.pointing-hand-anim {
+  animation: point-gesture 2.5s infinite ease-in-out;
+}
+
+@keyframes point-gesture {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-4px) translateX(2px); }
+  100% { transform: translateY(0); }
+}
+
+/* Badges */
 .action-grounding-bar {
   display: flex;
   align-items: center;
@@ -305,7 +290,7 @@ body {
   border-radius: 8px;
 }
 
-/* Dialogue Scroll Area */
+/* Dialogue Scroll */
 .personal-dialogue-area {
   flex: 1;
   display: flex;
@@ -313,7 +298,6 @@ body {
   gap: 8px;
   overflow-y: auto;
   min-height: 0;
-  padding-right: 2px;
 }
 
 .active-speech-bubble {
@@ -329,7 +313,6 @@ body {
   color: #f1f5f9;
 }
 
-/* Socratic Check */
 .socratic-check-box {
   background: rgba(15, 23, 42, 0.9);
   border: 1px dashed var(--chalk-cyan);
@@ -352,7 +335,6 @@ body {
   color: #e2e8f0;
 }
 
-/* History Stream */
 .dialogue-history {
   display: flex;
   flex-direction: column;
@@ -410,7 +392,6 @@ body {
   color: var(--chalk-cyan);
 }
 
-/* Input Form */
 .personal-input-form {
   display: flex;
   gap: 6px;
@@ -444,34 +425,39 @@ body {
   justify-content: center;
 }
 
-/* Right Panel: Single Whiteboard */
-.single-whiteboard-container {
-  background: #090d16;
+/* Right Panel: Manim Style Whiteboard */
+.manim-whiteboard-container {
+  background: #070b14;
   border: 2px solid #334155;
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.9);
 }
 
-.whiteboard-header {
+.whiteboard-top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 8px 14px;
   background: rgba(15, 23, 42, 0.85);
   border-bottom: 1px solid var(--border-slate);
 }
 
-.board-title {
+.whiteboard-title {
   font-size: 0.88rem;
   font-weight: 700;
   color: var(--chalk-cyan);
 }
 
-.btn-keyframe-toggle {
+.animation-mode-pills {
+  display: flex;
+  gap: 6px;
+}
+
+.mode-btn {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -479,35 +465,20 @@ body {
   border: 1px solid var(--border-slate);
   color: var(--text-muted);
   font-size: 0.72rem;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.btn-keyframe-toggle.active {
+.mode-btn.active {
+  background: var(--chalk-cyan);
+  color: #000;
+  font-weight: 700;
   border-color: var(--chalk-cyan);
-  color: var(--chalk-cyan);
 }
 
-.live-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.7rem;
-  color: var(--chalk-green);
-  font-weight: 600;
-}
-
-.live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--chalk-green);
-  box-shadow: 0 0 6px var(--chalk-green);
-}
-
-/* Whiteboard Surface */
-.whiteboard-surface {
+.whiteboard-main-body {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -515,17 +486,16 @@ body {
   gap: 12px;
   min-height: 0;
   overflow-y: auto;
-  position: relative;
 }
 
-.board-math-card {
+.math-formulation-card {
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: var(--radius-md);
   padding: 10px 16px;
 }
 
-.math-label {
+.formulation-label {
   font-size: 0.68rem;
   color: var(--chalk-cyan);
   text-transform: uppercase;
@@ -534,18 +504,17 @@ body {
   margin-bottom: 4px;
 }
 
-.board-katex-area {
+.katex-dynamic-render {
   font-size: 1.35rem;
   color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 48px;
-  text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
 }
 
-/* Canvas Card */
-.canvas-wrapper-card {
+.animation-canvas-card {
   background: #000;
   border: 1px solid var(--border-slate);
   border-radius: var(--radius-md);
@@ -555,34 +524,19 @@ body {
   gap: 8px;
 }
 
-.canvas-telemetry-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.telemetry-values {
-  display: flex;
-  gap: 10px;
-  color: var(--chalk-cyan);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem;
-}
-
-.unified-canvas {
+.manim-canvas {
   width: 100%;
-  height: 250px;
+  height: 260px;
   display: block;
 }
 
-.board-controls-row {
+.canvas-slider-bar {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.slider-item {
+.slider-box {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -591,11 +545,11 @@ body {
   color: var(--text-muted);
 }
 
-.slider-item input {
+.slider-box input {
   accent-color: var(--chalk-cyan);
 }
 
-.btn-pause-toggle {
+.btn-pause-animation {
   background: var(--bg-card);
   border: 1px solid var(--chalk-cyan);
   color: var(--chalk-cyan);
@@ -606,44 +560,6 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-/* Keyframe Overlay */
-.keyframe-overlay-panel {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 14px;
-  background: rgba(0, 0, 0, 0.9);
-  border: 1px solid var(--chalk-cyan);
-  border-radius: var(--radius-md);
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 10;
-}
-
-.overlay-header {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: var(--chalk-cyan);
-}
-
-.btn-close-overlay {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-.keyframe-overlay-img {
-  max-width: 100%;
-  max-height: 260px;
-  object-fit: contain;
-  border-radius: 4px;
 }
 
 /* Modal */
