@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Caveat:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   --bg-app: #080c14;
@@ -33,7 +33,6 @@ body {
 .items-center { align-items: center; }
 .justify-between { justify-content: space-between; }
 .gap-2 { gap: 8px; }
-.gap-3 { gap: 12px; }
 
 .chalk-cyan { color: var(--chalk-cyan); }
 .chalk-gold { color: var(--chalk-gold); }
@@ -119,8 +118,8 @@ body {
 /* 1-on-1 Layout Grid */
 .personal-main-grid {
   display: grid;
-  grid-template-columns: 420px 1fr;
-  gap: 12px;
+  grid-template-columns: 380px 1fr;
+  gap: 14px;
   flex: 1;
   min-height: 0;
 }
@@ -196,54 +195,6 @@ body {
   height: 100%;
   background: linear-gradient(90deg, #38bdf8, #34d399);
   transition: width 0.4s ease;
-}
-
-/* Animated Teacher Avatar */
-.animated-teacher-container {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--bg-card);
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-slate);
-}
-
-.avatar-svg-box {
-  position: relative;
-  width: 64px;
-  height: 72px;
-}
-
-.avatar-svg-box.active-lecturing {
-  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));
-}
-
-.teacher-badge-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.teacher-name {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-.teacher-status {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
-
-.pointing-hand-anim {
-  animation: point-gesture 2.5s infinite ease-in-out;
-}
-
-@keyframes point-gesture {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-4px) translateX(2px); }
-  100% { transform: translateY(0); }
 }
 
 /* Badges */
@@ -425,60 +376,42 @@ body {
   justify-content: center;
 }
 
-/* Right Panel: Manim Style Whiteboard */
-.manim-whiteboard-container {
-  background: #070b14;
-  border: 2px solid #334155;
+/* Right Panel: Teacher Blackboard Scene */
+.teacher-whiteboard-scene-container {
+  background: #080d16;
+  border: 3px solid #334155;
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.9);
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.95);
 }
 
-.whiteboard-top-nav {
+.scene-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 14px;
+  padding: 8px 16px;
   background: rgba(15, 23, 42, 0.85);
   border-bottom: 1px solid var(--border-slate);
 }
 
-.whiteboard-title {
+.scene-title {
   font-size: 0.88rem;
   font-weight: 700;
-  color: var(--chalk-cyan);
+  color: var(--chalk-gold);
 }
 
-.animation-mode-pills {
-  display: flex;
-  gap: 6px;
-}
-
-.mode-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-slate);
-  color: var(--text-muted);
+.scene-topic-badge {
   font-size: 0.72rem;
-  padding: 5px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--chalk-cyan);
+  padding: 3px 8px;
+  border-radius: 8px;
 }
 
-.mode-btn.active {
-  background: var(--chalk-cyan);
-  color: #000;
-  font-weight: 700;
-  border-color: var(--chalk-cyan);
-}
-
-.whiteboard-main-body {
+.scene-slate-stage {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -486,80 +419,84 @@ body {
   gap: 12px;
   min-height: 0;
   overflow-y: auto;
+  position: relative;
 }
 
-.math-formulation-card {
+.chalk-math-card {
   background: rgba(15, 23, 42, 0.9);
   border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: var(--radius-md);
-  padding: 10px 16px;
+  padding: 8px 14px;
 }
 
-.formulation-label {
-  font-size: 0.68rem;
+.chalk-math-label {
+  font-size: 0.65rem;
   color: var(--chalk-cyan);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
-.katex-dynamic-render {
+.chalk-katex-view {
   font-size: 1.35rem;
   color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 48px;
-  text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  min-height: 44px;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
 }
 
-.animation-canvas-card {
+/* Scene Canvas & Teacher Positioning */
+.scene-canvas-container {
+  position: relative;
   background: #000;
   border: 1px solid var(--border-slate);
   border-radius: var(--radius-md);
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  overflow: hidden;
+  height: 380px;
 }
 
-.manim-canvas {
+.scene-canvas {
   width: 100%;
-  height: 260px;
+  height: 100%;
   display: block;
 }
 
-.canvas-slider-bar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+/* Professor Standing on Chalkboard */
+.in-scene-teacher-avatar {
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  z-index: 5;
+  filter: drop-shadow(0 0 16px rgba(0, 0, 0, 0.9));
 }
 
-.slider-box {
-  flex: 1;
+.teacher-full-body-svg {
+  display: block;
+}
+
+/* Chalk Handwriting Lines on Blackboard */
+.chalk-handwriting-overlay {
+  position: absolute;
+  top: 14px;
+  left: 190px;
+  right: 20px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  gap: 6px;
+  z-index: 4;
+  pointer-events: none;
 }
 
-.slider-box input {
-  accent-color: var(--chalk-cyan);
-}
-
-.btn-pause-animation {
-  background: var(--bg-card);
-  border: 1px solid var(--chalk-cyan);
-  color: var(--chalk-cyan);
-  font-size: 0.72rem;
-  padding: 5px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.chalk-line-text {
+  font-family: 'Caveat', cursive, sans-serif;
+  font-size: 1.15rem;
+  color: #f1f5f9;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.4);
+  line-height: 1.25;
 }
 
 /* Modal */

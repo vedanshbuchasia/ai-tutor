@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import AnimatedTeacherAvatar from './AnimatedTeacherAvatar';
-import ManimStyleWhiteboard from './ManimStyleWhiteboard';
+import TeacherWhiteboardScene from './TeacherWhiteboardScene';
 import { 
   Sparkles, 
   Volume2, 
   VolumeX, 
   Key, 
   User, 
-  Layers, 
   Award,
   Send,
   HelpCircle,
@@ -30,18 +28,11 @@ export default function App() {
   });
 
   const [tutorState, setTutorState] = useState({
-    spoken_dialogue: "Hello Vedansh! Welcome to your personal 1-on-1 Kinematics coaching. Look at the animation on our whiteboard: observe how the initial launch velocity splits into independent horizontal and vertical vector components.",
-    whiteboard: {
-      action_name: "VECTOR_DECOMPOSITION",
-      math_latex: "\\vec{r}(t) = (u\\cos\\theta)t\\hat{i} + ((u\\sin\\theta)t - \\frac{1}{2}gt^2)\\hat{j}",
-      velocity: 25,
-      angle: 45,
-      gravity: 9.8,
-      annotation_text: "Vector Decomposition"
-    },
-    concept_question: "Are the horizontal and vertical motions independent of each other in 2D projectile flight?",
+    spoken_dialogue: "Hello Vedansh! Look at the chalkboard: I am writing out the kinematic equations and drawing the 2D projectile trajectory. Notice how the horizontal velocity vx remains constant, while the vertical velocity vy decreases under gravity.",
+    math_latex: "a_x = 0 \\implies v_x = u\\cos\\theta, \\quad y(t) = (u\\sin\\theta)t - \\frac{1}{2}gt^2",
+    concept_question: "What happens to the vertical velocity vy at the apex (maximum height)?",
     action_type: "TEACH",
-    rag_topic: "2D Vector Decomposition"
+    rag_topic: "2D Projectile Kinematics"
   });
 
   const [inputVal, setInputVal] = useState('');
@@ -103,17 +94,8 @@ export default function App() {
         })
       });
 
-      if (!res.ok) throw new Error("Server response error");
+      if (!res.ok) throw new Error("Server error");
       const data = await res.json();
-
-      // Map animation mode based on topic
-      let animMode = "TRAJECTORY";
-      const topicLower = (data.rag_topic || "").toLowerCase();
-      if (topicLower.includes("vector") || topicLower.includes("decomposition")) animMode = "VECTOR_DECOMPOSITION";
-      else if (topicLower.includes("velocity") || topicLower.includes("vertical") || topicLower.includes("apex")) animMode = "VELOCITY_GRAPH";
-      else if (topicLower.includes("drag") || topicLower.includes("air") || topicLower.includes("resistance")) animMode = "DRAG_COMPARISON";
-
-      data.whiteboard.action_name = animMode;
 
       setTutorState(data);
       if (typeof data.user_mastery === 'number') {
@@ -146,7 +128,7 @@ export default function App() {
         body: JSON.stringify({ api_key: apiKey })
       });
       setShowKeyModal(false);
-      handleSendMessage("Connect Gemini reasoning engine");
+      handleSendMessage("Connect Gemini LLM tutor");
     } catch (e) {
       console.error(e);
     }
@@ -157,9 +139,9 @@ export default function App() {
       case 'ANSWER_TANGENT':
         return <span className="badge badge-tangent"><AlertCircle size={13}/> Answering Your Doubt</span>;
       case 'REMEDIATE':
-        return <span className="badge badge-remediate"><Sparkles size={13}/> Intuitive Coaching</span>;
+        return <span className="badge badge-remediate"><Sparkles size={13}/> Conceptual Coaching</span>;
       default:
-        return <span className="badge badge-teach"><GraduationCap size={13}/> Animated Micro-Lesson</span>;
+        return <span className="badge badge-teach"><GraduationCap size={13}/> Chalkboard Lesson</span>;
     }
   };
 
@@ -172,8 +154,8 @@ export default function App() {
             <Sparkles size={20} />
           </div>
           <div>
-            <h2>Kinematics 1-on-1 Animation AI Tutor</h2>
-            <p className="brand-tagline">Pure Programmatic Visual Engine • Live Adaptive Voice Avatar</p>
+            <h2>Kinematics AI Chalkboard Tutor</h2>
+            <p className="brand-tagline">Google Gemini LLM Engine • Animated Chalkboard Teacher</p>
           </div>
         </div>
 
@@ -183,7 +165,7 @@ export default function App() {
             onClick={() => setShowKeyModal(true)}
             title="Configure Gemini API Key"
           >
-            <Key size={15} /> API Key
+            <Key size={15} /> LLM API Key (Gemini)
           </button>
           <button 
             className={`btn-nav-control ${speechEnabled ? 'voice-active' : ''}`}
@@ -200,10 +182,10 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main 1-on-1 Split Grid */}
+      {/* Main Split Grid */}
       <div className="personal-main-grid">
         
-        {/* Left Side: Avatar & Dialogue Panel */}
+        {/* Left Side: Student Profile & Dialogue */}
         <aside className="personal-avatar-panel">
           
           {/* Student Profile Card */}
@@ -232,12 +214,6 @@ export default function App() {
               ></div>
             </div>
           </div>
-
-          {/* Animated Teacher Avatar (Lip-Sync + Gestures) */}
-          <AnimatedTeacherAvatar 
-            isSpeaking={isSpeaking} 
-            currentAction={tutorState.action_type}
-          />
 
           {/* Action & Grounding */}
           <div className="action-grounding-bar">
@@ -276,14 +252,14 @@ export default function App() {
 
           {/* Quick Prompt Suggestions */}
           <div className="prompt-chips-row">
+            <button onClick={() => handleSendMessage("What happens to vertical velocity vy at maximum height?")}>
+              🎯 Apex Velocity vy = 0
+            </button>
             <button onClick={() => handleSendMessage("How does air resistance change the trajectory?")}>
-              💨 Air Drag Physics
+              💨 Air Resistance Doubt
             </button>
-            <button onClick={() => handleSendMessage("What happens to vertical velocity vy over time?")}>
-              📈 Plot vy(t) Graph
-            </button>
-            <button onClick={() => handleSendMessage("Show me vector decomposition again")}>
-              📐 Vector Decomposition
+            <button onClick={() => handleSendMessage("Why is maximum range at 45 degrees?")}>
+              📐 Why 45° for Range?
             </button>
             <button onClick={() => handleSendMessage("Understood! Please advance to the next concept.")}>
               ✅ Next Lesson
@@ -305,14 +281,12 @@ export default function App() {
           </form>
         </aside>
 
-        {/* Right Side: Pure Animated Whiteboard */}
-        <ManimStyleWhiteboard 
-          mathLatex={tutorState.whiteboard?.math_latex}
-          velocity={tutorState.whiteboard?.velocity || 25}
-          angle={tutorState.whiteboard?.angle || 45}
-          gravity={tutorState.whiteboard?.gravity || 9.8}
-          animationMode={tutorState.whiteboard?.action_name || "TRAJECTORY"}
-          annotationText={tutorState.whiteboard?.annotation_text}
+        {/* Right Side: Professor Writing Directly on the Blackboard */}
+        <TeacherWhiteboardScene 
+          dialogueText={tutorState.spoken_dialogue}
+          mathLatex={tutorState.math_latex || tutorState.whiteboard?.math_latex}
+          isSpeaking={isSpeaking}
+          topicTitle={tutorState.rag_topic || "Kinematics 2D: Projectile Motion"}
         />
 
       </div>
