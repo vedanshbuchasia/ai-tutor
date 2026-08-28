@@ -1,69 +1,50 @@
-import React, { useState, useEffect, useRef } from 'react';
-import katex from 'katex';
-import 'katex/dist/katex.min.css';
-import PhysicsCanvas from './PhysicsCanvas';
+import React, { useState, useEffect } from 'react';
+import ClassroomSidebar from './ClassroomSidebar';
+import ClassroomBlackboard from './ClassroomBlackboard';
 import { 
-  Sparkles, 
+  GraduationCap, 
   Volume2, 
   VolumeX, 
-  Send, 
-  HelpCircle, 
-  Key,
-  GraduationCap, 
-  Layers, 
-  AlertCircle,
-  RefreshCw,
-  Maximize2,
-  Database,
-  Activity,
-  Image as ImageIcon
+  Key, 
+  BookOpen, 
+  Sparkles, 
+  Layers,
+  ChevronRight
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8000';
 
+const COURSE_CHAPTERS = [
+  { id: 0, title: "1. Vector Decomposition in 2D", status: "completed" },
+  { id: 1, title: "2. Constant Horizontal Velocity (ax = 0)", status: "current" },
+  { id: 2, title: "3. Vertical Deceleration & Apex Height", status: "locked" },
+  { id: 3, title: "4. Total Time of Flight & Max Range", status: "locked" },
+  { id: 4, title: "5. Aerodynamic Drag & Relative Velocity", status: "locked" }
+];
+
 export default function App() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [activeBoardTab, setActiveBoardTab] = useState('sim'); // 'sim' | 'diagram'
+  const [currentChapter, setCurrentChapter] = useState(1);
+  const [activeBoardTab, setActiveBoardTab] = useState('lab'); // 'theory' | 'lab' | 'diagram'
   
   const [tutorState, setTutorState] = useState({
-    spoken_dialogue: "Welcome! I am your Multimodal AI Physics Tutor. Today we are exploring 2D Projectile Motion. Look at the animated blackboard: the blue trajectory traces the parabolic path, while the arrows represent horizontal velocity vx and changing vertical velocity vy.",
-    frame_to_display: "frame_000.jpg",
-    math_latex: "\\vec{r}(t) = (u\\cos\\theta)t\\hat{i} + ((u\\sin\\theta)t - \\frac{1}{2}gt^2)\\hat{j}",
-    concept_question: "Can horizontal motion affect the time it takes for a projectile to fall to the ground?",
+    spoken_dialogue: "Welcome to today's MIT-style visual physics lecture on Kinematics and 2D Projectiles! On Board B, we are simulating a projectile in real-time. Notice how the horizontal cyan vector vx remains perfectly constant, while the vertical emerald vector vy decelerates under gravity. Let's analyze what happens at maximum height.",
+    frame_to_display: "frame_005.jpg",
+    math_latex: "a_x = 0 \\implies v_x = u\\cos\\theta, \\quad y(t) = (u\\sin\\theta)t - \\frac{1}{2}gt^2",
+    concept_question: "Can horizontal motion affect the time it takes for a projectile to fall to the ground, or are x and y completely independent?",
     action_type: "TEACH",
-    simulation_params: { velocity: 25, angle: 45, gravity: 9.8 },
-    rag_grounding: []
+    lecture_topic: "2D Projectile Kinematics & Trajectory Parabola"
   });
 
-  const [inputMessage, setInputMessage] = useState('');
   const [chatLog, setChatLog] = useState([]);
   const [loading, setLoading] = useState(false);
   const [speechEnabled, setSpeechEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [selectedFrameZoom, setSelectedFrameZoom] = useState(null);
-  const [apiKey, setApiKey] = useState('');
   const [showKeyModal, setShowKeyModal] = useState(false);
+  const [apiKey, setApiKey] = useState('');
 
-  const mathRef = useRef(null);
-  const chatEndRef = useRef(null);
-
-  // Render KaTeX Math
   useEffect(() => {
-    if (mathRef.current && tutorState.math_latex) {
-      try {
-        katex.render(tutorState.math_latex, mathRef.current, {
-          displayMode: true,
-          throwOnError: false
-        });
-      } catch (err) {
-        console.error("KaTeX error:", err);
-      }
-    }
-  }, [tutorState.math_latex]);
-
-  // Initial prompt
-  useEffect(() => {
-    handleSend("start", true);
+    // Initial welcome
+    handleSendMessage("start", true);
   }, []);
 
   const speakText = (text) => {
@@ -78,13 +59,11 @@ export default function App() {
     window.speechSynthesis.speak(utterance);
   };
 
-  const handleSend = async (messageToSend = null, isSilent = false) => {
-    const text = (messageToSend !== null ? messageToSend : inputMessage).trim();
-    if (!text && !isSilent) return;
+  const handleSendMessage = async (text, isSilent = false) => {
+    if (!text.trim() && !isSilent) return;
 
     if (!isSilent) {
       setChatLog(prev => [...prev, { sender: 'student', text }]);
-      setInputMessage('');
     }
 
     setLoading(true);
@@ -95,7 +74,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_message: text,
-          current_step: currentStep,
+          current_step: currentChapter,
           conversation_history: chatLog,
           api_key: apiKey
         })
@@ -106,7 +85,7 @@ export default function App() {
       
       setTutorState(data);
       if (typeof data.step_index === 'number') {
-        setCurrentStep(data.step_index);
+        setCurrentChapter(data.step_index);
       }
 
       setChatLog(prev => [...prev, {
@@ -120,10 +99,9 @@ export default function App() {
         speakText(data.spoken_dialogue);
       }
     } catch (err) {
-      console.warn("API error:", err);
+      console.warn("API offline fallback:", err);
     } finally {
       setLoading(false);
-      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     }
   };
 
@@ -136,62 +114,57 @@ export default function App() {
         body: JSON.stringify({ api_key: apiKey })
       });
       setShowKeyModal(false);
-      handleSend("Evaluate my syllabus with Gemini");
+      handleSendMessage("Connect Gemini LLM tutor");
     } catch (e) {
       console.error(e);
     }
   };
 
-  const getActionBadge = (action) => {
-    switch (action) {
-      case 'ANSWER_TANGENT':
-        return <span className="badge badge-tangent"><AlertCircle size={14}/> Answering Tangent / Doubt</span>;
-      case 'REMEDIATE':
-        return <span className="badge badge-remediate"><RefreshCw size={14}/> Clarifying Concept</span>;
-      default:
-        return <span className="badge badge-teach"><GraduationCap size={14}/> Delivering Vector RAG Lesson</span>;
-    }
-  };
-
   return (
-    <div className="app-container">
-      {/* Top Navbar */}
-      <header className="navbar">
-        <div className="nav-brand">
-          <div className="logo-icon"><Sparkles size={20} /></div>
+    <div className="classroom-app-container">
+      {/* Top University Lecture Hall Navigation Bar */}
+      <header className="lecture-hall-navbar">
+        <div className="nav-course-brand">
+          <div className="university-crest">
+            <GraduationCap size={22} />
+          </div>
           <div>
-            <h1>Kinematics Multimodal Vector RAG Tutor</h1>
-            <p className="nav-subtitle">Live Vector Grounding • Animated Visual Blackboard</p>
+            <h2>PHYS 101: Classical Mechanics & Kinematics</h2>
+            <div className="course-status-pill">
+              <span className="live-dot"></span>
+              <span>LIVE LECTURE HALL • Prof. Sophia presiding</span>
+            </div>
           </div>
         </div>
 
-        {/* Step Progress Tracker */}
-        <div className="stepper">
-          {[0, 1, 2, 3, 4].map(idx => (
+        {/* Chapter Progression Tree */}
+        <div className="chapter-progress-bar">
+          {COURSE_CHAPTERS.map((ch, idx) => (
             <div 
-              key={idx} 
-              className={`step-node ${idx === currentStep ? 'active' : ''} ${idx < currentStep ? 'completed' : ''}`}
+              key={ch.id} 
+              className={`chapter-node ${idx === currentChapter ? 'current' : ''} ${idx < currentChapter ? 'done' : ''}`}
               onClick={() => {
-                setCurrentStep(idx);
-                handleSend(`Teach stage ${idx + 1}`);
+                setCurrentChapter(idx);
+                handleSendMessage(`Teach chapter: ${ch.title}`);
               }}
             >
-              <div className="node-circle">{idx < currentStep ? '✓' : idx + 1}</div>
-              <span className="node-label">Stage {idx + 1}</span>
+              <span className="chapter-index">{idx + 1}</span>
+              <span className="chapter-name">{ch.title.split('.')[1]}</span>
             </div>
           ))}
         </div>
 
-        <div className="nav-controls">
+        {/* Action Controls */}
+        <div className="hall-controls">
           <button 
-            className="btn-icon"
+            className="control-btn"
             onClick={() => setShowKeyModal(true)}
             title="Configure Gemini API Key"
           >
-            <Key size={18}/>
+            <Key size={16} /> API Key
           </button>
           <button 
-            className={`btn-icon ${speechEnabled ? 'active' : ''}`}
+            className={`control-btn ${speechEnabled ? 'voice-on' : ''}`}
             onClick={() => {
               const next = !speechEnabled;
               setSpeechEnabled(next);
@@ -200,210 +173,50 @@ export default function App() {
             }}
             title={speechEnabled ? "Voice Enabled" : "Enable Voice"}
           >
-            {speechEnabled ? <Volume2 size={18}/> : <VolumeX size={18}/>}
+            {speechEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />} Voice {speechEnabled ? 'ON' : 'OFF'}
           </button>
         </div>
       </header>
 
-      {/* Main Split Screen */}
-      <div className="main-layout">
-        
-        {/* Left Side: Avatar & Interactive Teacher */}
-        <aside className="left-panel">
-          
-          {/* Avatar Card */}
-          <div className="avatar-card">
-            <div className={`avatar-wrapper ${isSpeaking ? 'speaking' : ''}`}>
-              <div className="avatar-glow"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80" 
-                alt="AI Professor" 
-                className="avatar-img"
-              />
-              {isSpeaking && <div className="pulse-ring"></div>}
-            </div>
-            
-            <div className="avatar-info">
-              <h3>Prof. Sophia</h3>
-              <div className="status-indicator">
-                <span className="dot"></span>
-                <span>{isSpeaking ? 'Narrating verbally...' : 'Listening & Ready'}</span>
-              </div>
-            </div>
-          </div>
+      {/* Main Classroom Layout (Left: Sidebar / Peers / Dialogue, Right: Multi-Board Smartboard) */}
+      <div className="classroom-main-grid">
+        <ClassroomSidebar 
+          tutorDialogue={tutorState.spoken_dialogue}
+          conceptQuestion={tutorState.concept_question}
+          actionType={tutorState.action_type}
+          isSpeaking={isSpeaking}
+          chatLog={chatLog}
+          onSendMessage={handleSendMessage}
+          loading={loading}
+        />
 
-          {/* Action Badge & Vector Grounding Indicator */}
-          <div className="current-action-bar flex justify-between items-center">
-            {getActionBadge(tutorState.action_type)}
-            {tutorState.rag_grounding?.length > 0 && (
-              <span className="rag-pill">
-                <Database size={12} /> {tutorState.rag_grounding[0].topic}
-              </span>
-            )}
-          </div>
-
-          {/* Dialogue & Question Box */}
-          <div className="dialogue-box">
-            <div className="dialogue-message current-speech">
-              <p className="dialogue-text">{tutorState.spoken_dialogue}</p>
-            </div>
-
-            {tutorState.concept_question && (
-              <div className="concept-check-card">
-                <div className="check-header">
-                  <HelpCircle size={16} className="text-cyan"/>
-                  <strong>Check for Understanding:</strong>
-                </div>
-                <p className="question-text">{tutorState.concept_question}</p>
-              </div>
-            )}
-
-            {/* Conversation Stream */}
-            <div className="chat-history">
-              {chatLog.slice(0, -1).map((msg, i) => (
-                <div key={i} className={`chat-bubble ${msg.sender}`}>
-                  <span className="bubble-sender">{msg.sender === 'student' ? 'You' : 'Prof. Sophia'}</span>
-                  <p>{msg.text || msg.dialogue}</p>
-                </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-          </div>
-
-          {/* Quick Prompts */}
-          <div className="quick-prompts">
-            <button onClick={() => handleSend("What about air resistance and aerodynamic drag?")}>
-              💡 Tangent: Air Drag?
-            </button>
-            <button onClick={() => handleSend("Why is maximum range at 45 degrees angle?")}>
-              ❓ Why 45° for Max Range?
-            </button>
-            <button onClick={() => handleSend("What happens to vertical velocity vy at the apex?")}>
-              🎯 Apex Velocity
-            </button>
-            <button onClick={() => handleSend("Understood! Please advance to next concept.")}>
-              ✅ Next Lesson
-            </button>
-          </div>
-
-          {/* Student Response Input */}
-          <form className="input-area" onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
-            <input 
-              type="text" 
-              placeholder="Answer question or interrupt with any physics doubt..." 
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              disabled={loading}
-            />
-            <button type="submit" className="btn-send" disabled={loading || !inputMessage.trim()}>
-              <Send size={18} />
-            </button>
-          </form>
-        </aside>
-
-        {/* Right Side: The Visual Blackboard */}
-        <main className="right-panel">
-          <div className="blackboard-frame">
-            
-            {/* Blackboard Tabs */}
-            <div className="blackboard-header">
-              <div className="flex items-center gap-4">
-                <div className="board-title">
-                  <Layers size={18} />
-                  <span>The Visual Physics Blackboard</span>
-                </div>
-                <div className="tab-pills">
-                  <button 
-                    className={`tab-btn ${activeBoardTab === 'sim' ? 'active' : ''}`}
-                    onClick={() => setActiveBoardTab('sim')}
-                  >
-                    <Activity size={14} /> Live Physics Simulation
-                  </button>
-                  <button 
-                    className={`tab-btn ${activeBoardTab === 'diagram' ? 'active' : ''}`}
-                    onClick={() => setActiveBoardTab('diagram')}
-                  >
-                    <ImageIcon size={14} /> Grounded Lecture Keyframe
-                  </button>
-                </div>
-              </div>
-
-              <div className="board-status">
-                <span>Vector Grounded • {tutorState.frame_to_display}</span>
-              </div>
-            </div>
-
-            <div className="blackboard-content">
-              
-              {/* Dynamic Mathematical Equations via KaTeX */}
-              <div className="math-display-card">
-                <div className="math-label">Live Mathematical Formulation</div>
-                <div ref={mathRef} className="katex-render-area"></div>
-              </div>
-
-              {/* Main Visual Display Area */}
-              {activeBoardTab === 'sim' ? (
-                <PhysicsCanvas 
-                  velocity={tutorState.simulation_params?.velocity || 25}
-                  angle={tutorState.simulation_params?.angle || 45}
-                  gravity={tutorState.simulation_params?.gravity || 9.8}
-                />
-              ) : (
-                <div className="visual-board">
-                  <div className="diagram-header">
-                    <span>Grounded Video Keyframe: {tutorState.frame_to_display}</span>
-                    <button 
-                      className="btn-zoom"
-                      onClick={() => setSelectedFrameZoom(`${API_BASE}/frames/${tutorState.frame_to_display}`)}
-                    >
-                      <Maximize2 size={16} /> Expand Diagram
-                    </button>
-                  </div>
-
-                  <div className="diagram-container">
-                    <img 
-                      src={`${API_BASE}/frames/${tutorState.frame_to_display}`} 
-                      alt="Kinematics Visual Keyframe"
-                      className="diagram-image"
-                      onError={(e) => {
-                        e.target.src = "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1200&q=80";
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </main>
+        <ClassroomBlackboard 
+          activeTab={activeBoardTab}
+          setActiveTab={setActiveBoardTab}
+          mathLatex={tutorState.math_latex}
+          frameToDisplay={tutorState.frame_to_display}
+          apiBase={API_BASE}
+          lectureTopic={tutorState.lecture_topic}
+        />
       </div>
 
-      {/* API Key Configuration Modal */}
+      {/* API Key Modal */}
       {showKeyModal && (
         <div className="modal-backdrop" onClick={() => setShowKeyModal(false)}>
-          <div className="modal-body api-modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3>Configure Gemini API Key</h3>
-            <p>Enter your Google Gemini API key to enable live LLM generation and cloud vector embeddings:</p>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>🔑 Configure Google Gemini API Key</h3>
+            <p>Connect your Gemini API Key for dynamic multi-turn Socratic reasoning and cloud vector embeddings:</p>
             <input 
               type="password"
               placeholder="AIzaSy..."
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              className="api-input"
+              className="key-input"
             />
-            <div className="modal-actions">
+            <div className="modal-btn-row">
               <button className="btn-cancel" onClick={() => setShowKeyModal(false)}>Cancel</button>
               <button className="btn-save" onClick={saveApiKey}>Save & Activate</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Zoom View */}
-      {selectedFrameZoom && (
-        <div className="modal-backdrop" onClick={() => setSelectedFrameZoom(null)}>
-          <div className="modal-body" onClick={(e) => e.stopPropagation()}>
-            <img src={selectedFrameZoom} alt="Zoomed diagram" />
-            <button className="btn-close-modal" onClick={() => setSelectedFrameZoom(null)}>✕ Close</button>
           </div>
         </div>
       )}
