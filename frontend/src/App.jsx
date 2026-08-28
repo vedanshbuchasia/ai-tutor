@@ -1,38 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import ClassroomSidebar from './ClassroomSidebar';
-import ClassroomBlackboard from './ClassroomBlackboard';
+import PersonalAvatarPanel from './PersonalAvatarPanel';
+import SingleWhiteboard from './SingleWhiteboard';
 import { 
-  GraduationCap, 
+  Sparkles, 
   Volume2, 
   VolumeX, 
   Key, 
-  BookOpen, 
-  Sparkles, 
+  User, 
   Layers,
-  ChevronRight
+  GraduationCap
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8000';
-
-const COURSE_CHAPTERS = [
-  { id: 0, title: "1. Vector Decomposition in 2D", status: "completed" },
-  { id: 1, title: "2. Constant Horizontal Velocity (ax = 0)", status: "current" },
-  { id: 2, title: "3. Vertical Deceleration & Apex Height", status: "locked" },
-  { id: 3, title: "4. Total Time of Flight & Max Range", status: "locked" },
-  { id: 4, title: "5. Aerodynamic Drag & Relative Velocity", status: "locked" }
-];
+const CURRENT_USER_ID = 'vedansh_student';
+const CURRENT_USER_NAME = 'Vedansh';
 
 export default function App() {
-  const [currentChapter, setCurrentChapter] = useState(1);
-  const [activeBoardTab, setActiveBoardTab] = useState('lab'); // 'theory' | 'lab' | 'diagram'
-  
+  const [userProfile, setUserProfile] = useState({
+    user_id: CURRENT_USER_ID,
+    name: CURRENT_USER_NAME,
+    mastery_score: 20,
+    current_topic_index: 0,
+    completed_topics: [],
+    doubts_logged: []
+  });
+
   const [tutorState, setTutorState] = useState({
-    spoken_dialogue: "Welcome to today's MIT-style visual physics lecture on Kinematics and 2D Projectiles! On Board B, we are simulating a projectile in real-time. Notice how the horizontal cyan vector vx remains perfectly constant, while the vertical emerald vector vy decelerates under gravity. Let's analyze what happens at maximum height.",
-    frame_to_display: "frame_005.jpg",
-    math_latex: "a_x = 0 \\implies v_x = u\\cos\\theta, \\quad y(t) = (u\\sin\\theta)t - \\frac{1}{2}gt^2",
-    concept_question: "Can horizontal motion affect the time it takes for a projectile to fall to the ground, or are x and y completely independent?",
+    spoken_dialogue: "Hello Vedansh! Welcome to your personal 1-on-1 Physics session on 2D Projectile Kinematics. Look at your whiteboard on the right: we decompose all motion into horizontal (vx) and vertical (vy) vectors. Let's start with the fundamental derivation.",
+    whiteboard: {
+      action_name: "ANIMATE_TRAJECTORY",
+      math_latex: "\\vec{r}(t) = (u\\cos\\theta)t\\hat{i} + ((u\\sin\\theta)t - \\frac{1}{2}gt^2)\\hat{j}",
+      velocity: 25,
+      angle: 45,
+      gravity: 9.8,
+      frame_to_display: "frame_000.jpg",
+      annotation_text: "2D Vector Decomposition"
+    },
+    concept_question: "Are the horizontal and vertical motions dependent on each other, or are they completely independent?",
     action_type: "TEACH",
-    lecture_topic: "2D Projectile Kinematics & Trajectory Parabola"
+    rag_topic: "2D Vector Decomposition"
   });
 
   const [chatLog, setChatLog] = useState([]);
@@ -42,11 +48,23 @@ export default function App() {
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [apiKey, setApiKey] = useState('');
 
+  // 1. Initialize user session on mount
   useEffect(() => {
-    // Initial welcome
+    fetch(`${API_BASE}/api/v1/session/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: CURRENT_USER_ID, user_name: CURRENT_USER_NAME })
+    })
+      .then(res => res.json())
+      .then(profile => {
+        if (profile) setUserProfile(profile);
+      })
+      .catch(err => console.log("Backend initializing..."));
+
     handleSendMessage("start", true);
   }, []);
 
+  // Text-To-Speech
   const speakText = (text) => {
     if (!speechEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
@@ -69,23 +87,23 @@ export default function App() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/chat`, {
+      const res = await fetch(`${API_BASE}/api/v1/tutor/interact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          user_id: CURRENT_USER_ID,
           user_message: text,
-          current_step: currentChapter,
           conversation_history: chatLog,
           api_key: apiKey
         })
       });
 
-      if (!res.ok) throw new Error("Server error");
+      if (!res.ok) throw new Error("Server response not ok");
       const data = await res.json();
-      
+
       setTutorState(data);
-      if (typeof data.step_index === 'number') {
-        setCurrentChapter(data.step_index);
+      if (typeof data.user_mastery === 'number') {
+        setUserProfile(prev => ({ ...prev, mastery_score: data.user_mastery }));
       }
 
       setChatLog(prev => [...prev, {
@@ -99,7 +117,7 @@ export default function App() {
         speakText(data.spoken_dialogue);
       }
     } catch (err) {
-      console.warn("API offline fallback:", err);
+      console.warn("Using local adaptive state:", err);
     } finally {
       setLoading(false);
     }
@@ -108,63 +126,42 @@ export default function App() {
   const saveApiKey = async () => {
     if (!apiKey) return;
     try {
-      await fetch(`${API_BASE}/set_api_key`, {
+      await fetch(`${API_BASE}/api/v1/config/api_key`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ api_key: apiKey })
       });
       setShowKeyModal(false);
-      handleSendMessage("Connect Gemini LLM tutor");
+      handleSendMessage("Connect Gemini reasoning engine");
     } catch (e) {
       console.error(e);
     }
   };
 
   return (
-    <div className="classroom-app-container">
-      {/* Top University Lecture Hall Navigation Bar */}
-      <header className="lecture-hall-navbar">
-        <div className="nav-course-brand">
-          <div className="university-crest">
-            <GraduationCap size={22} />
+    <div className="personal-app-container">
+      {/* Top Navbar */}
+      <header className="personal-navbar">
+        <div className="nav-brand-section">
+          <div className="brand-icon">
+            <Sparkles size={20} />
           </div>
           <div>
-            <h2>PHYS 101: Classical Mechanics & Kinematics</h2>
-            <div className="course-status-pill">
-              <span className="live-dot"></span>
-              <span>LIVE LECTURE HALL • Prof. Sophia presiding</span>
-            </div>
+            <h2>Kinematics 1-on-1 AI Tutor</h2>
+            <p className="brand-tagline">Personalized Adaptive Whiteboard & Vector RAG</p>
           </div>
         </div>
 
-        {/* Chapter Progression Tree */}
-        <div className="chapter-progress-bar">
-          {COURSE_CHAPTERS.map((ch, idx) => (
-            <div 
-              key={ch.id} 
-              className={`chapter-node ${idx === currentChapter ? 'current' : ''} ${idx < currentChapter ? 'done' : ''}`}
-              onClick={() => {
-                setCurrentChapter(idx);
-                handleSendMessage(`Teach chapter: ${ch.title}`);
-              }}
-            >
-              <span className="chapter-index">{idx + 1}</span>
-              <span className="chapter-name">{ch.title.split('.')[1]}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Action Controls */}
-        <div className="hall-controls">
+        <div className="nav-action-buttons">
           <button 
-            className="control-btn"
+            className="btn-nav-control"
             onClick={() => setShowKeyModal(true)}
             title="Configure Gemini API Key"
           >
-            <Key size={16} /> API Key
+            <Key size={15} /> API Key
           </button>
           <button 
-            className={`control-btn ${speechEnabled ? 'voice-on' : ''}`}
+            className={`btn-nav-control ${speechEnabled ? 'voice-active' : ''}`}
             onClick={() => {
               const next = !speechEnabled;
               setSpeechEnabled(next);
@@ -173,30 +170,33 @@ export default function App() {
             }}
             title={speechEnabled ? "Voice Enabled" : "Enable Voice"}
           >
-            {speechEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />} Voice {speechEnabled ? 'ON' : 'OFF'}
+            {speechEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />} Voice {speechEnabled ? 'ON' : 'OFF'}
           </button>
         </div>
       </header>
 
-      {/* Main Classroom Layout (Left: Sidebar / Peers / Dialogue, Right: Multi-Board Smartboard) */}
-      <div className="classroom-main-grid">
-        <ClassroomSidebar 
+      {/* Main 1-on-1 Split Grid (Left: Avatar & Dialogue, Right: Single Whiteboard) */}
+      <div className="personal-main-grid">
+        <PersonalAvatarPanel 
+          userProfile={userProfile}
           tutorDialogue={tutorState.spoken_dialogue}
           conceptQuestion={tutorState.concept_question}
           actionType={tutorState.action_type}
+          ragTopic={tutorState.rag_topic}
           isSpeaking={isSpeaking}
           chatLog={chatLog}
           onSendMessage={handleSendMessage}
           loading={loading}
         />
 
-        <ClassroomBlackboard 
-          activeTab={activeBoardTab}
-          setActiveTab={setActiveBoardTab}
-          mathLatex={tutorState.math_latex}
-          frameToDisplay={tutorState.frame_to_display}
+        <SingleWhiteboard 
+          mathLatex={tutorState.whiteboard?.math_latex}
+          velocity={tutorState.whiteboard?.velocity || 25}
+          angle={tutorState.whiteboard?.angle || 45}
+          gravity={tutorState.whiteboard?.gravity || 9.8}
+          frameToDisplay={tutorState.whiteboard?.frame_to_display || "frame_000.jpg"}
           apiBase={API_BASE}
-          lectureTopic={tutorState.lecture_topic}
+          annotationText={tutorState.whiteboard?.annotation_text}
         />
       </div>
 
@@ -205,7 +205,7 @@ export default function App() {
         <div className="modal-backdrop" onClick={() => setShowKeyModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <h3>🔑 Configure Google Gemini API Key</h3>
-            <p>Connect your Gemini API Key for dynamic multi-turn Socratic reasoning and cloud vector embeddings:</p>
+            <p>Connect your Gemini API Key for live personalized Socratic reasoning and cloud vector embeddings:</p>
             <input 
               type="password"
               placeholder="AIzaSy..."
