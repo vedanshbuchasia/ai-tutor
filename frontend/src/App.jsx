@@ -28,11 +28,24 @@ export default function App() {
   });
 
   const [tutorState, setTutorState] = useState({
-    spoken_dialogue: "Hello Vedansh! Look at the chalkboard: I am writing out the kinematic equations and drawing the 2D projectile trajectory. Notice how the horizontal velocity vx remains constant, while the vertical velocity vy decreases under gravity.",
-    math_latex: "a_x = 0 \\implies v_x = u\\cos\\theta, \\quad y(t) = (u\\sin\\theta)t - \\frac{1}{2}gt^2",
-    concept_question: "What happens to the vertical velocity vy at the apex (maximum height)?",
+    spoken_dialogue: "Hello Vedansh! Imagine dropping a ball from your left hand while firing another horizontally from your right hand from the same height. Both balls hit the floor at the EXACT same millisecond! Why? Because gravity pulls purely downward on the y-axis, with zero horizontal effect.",
+    whiteboard: {
+      action_name: "TRAJECTORY",
+      math_latex: "\\vec{r}(t) = x(t)\\hat{i} + y(t)\\hat{j} = (u\\cos\\theta)t\\hat{i} + \\left((u\\sin\\theta)t - \\frac{1}{2}gt^2\\right)\\hat{j}",
+      velocity: 24,
+      angle: 45,
+      gravity: 9.8,
+      chalk_notes: [
+        "• Core Law: Horizontal & Vertical motions are 100% independent.",
+        "• Gravity acts purely DOWNWARD (y-axis: ay = -g).",
+        "• Horizontal motion has zero force => moves purely by inertia (ax = 0).",
+        "• Position: r(t) = x(t)î + y(t)ĵ"
+      ],
+      concept_title: "Independence of Perpendicular Motions"
+    },
+    concept_question: "If you drop a coin from your hand while throwing another coin horizontally from the same height, which one hits the ground first?",
     action_type: "TEACH",
-    rag_topic: "2D Projectile Kinematics"
+    rag_topic: "Independence of Perpendicular Motions"
   });
 
   const [inputVal, setInputVal] = useState('');
@@ -43,7 +56,7 @@ export default function App() {
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [apiKey, setApiKey] = useState('');
 
-  // 1. Initialize user session on mount
+  // 1. Initialize session on mount
   useEffect(() => {
     fetch(`${API_BASE}/api/v1/session/start`, {
       method: 'POST',
@@ -54,7 +67,7 @@ export default function App() {
       .then(profile => {
         if (profile) setUserProfile(profile);
       })
-      .catch(err => console.log("Backend initializing..."));
+      .catch(err => console.log("Backend starting..."));
 
     handleSendMessage("start", true);
   }, []);
@@ -128,7 +141,7 @@ export default function App() {
         body: JSON.stringify({ api_key: apiKey })
       });
       setShowKeyModal(false);
-      handleSendMessage("Connect Gemini LLM tutor");
+      handleSendMessage("Teach with Google Gemini");
     } catch (e) {
       console.error(e);
     }
@@ -137,11 +150,11 @@ export default function App() {
   const getActionBadge = (action) => {
     switch (action) {
       case 'ANSWER_TANGENT':
-        return <span className="badge badge-tangent"><AlertCircle size={13}/> Answering Your Doubt</span>;
+        return <span className="badge badge-tangent"><AlertCircle size={13}/> Conceptual Doubt Clarification</span>;
       case 'REMEDIATE':
-        return <span className="badge badge-remediate"><Sparkles size={13}/> Conceptual Coaching</span>;
+        return <span className="badge badge-remediate"><Sparkles size={13}/> Intuitive Coaching</span>;
       default:
-        return <span className="badge badge-teach"><GraduationCap size={13}/> Chalkboard Lesson</span>;
+        return <span className="badge badge-teach"><GraduationCap size={13}/> Socratic Conceptual Lesson</span>;
     }
   };
 
@@ -154,8 +167,8 @@ export default function App() {
             <Sparkles size={20} />
           </div>
           <div>
-            <h2>Kinematics AI Chalkboard Tutor</h2>
-            <p className="brand-tagline">Google Gemini LLM Engine • Animated Chalkboard Teacher</p>
+            <h2>Kinematics AI Concept Tutor</h2>
+            <p className="brand-tagline">Google Gemini Physics Engine • Socratic Conceptual Mastery</p>
           </div>
         </div>
 
@@ -182,10 +195,10 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Split Grid */}
+      {/* Main 1-on-1 Split Grid */}
       <div className="personal-main-grid">
         
-        {/* Left Side: Student Profile & Dialogue */}
+        {/* Left Side: Student Profile & Socratic Dialogue */}
         <aside className="personal-avatar-panel">
           
           {/* Student Profile Card */}
@@ -197,7 +210,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4>{userProfile?.name || "Vedansh"}</h4>
-                  <span className="profile-subtitle">Personal 1-on-1 Session</span>
+                  <span className="profile-subtitle">Personal Conceptual Coaching</span>
                 </div>
               </div>
 
@@ -233,7 +246,7 @@ export default function App() {
               <div className="socratic-check-box">
                 <div className="check-title">
                   <HelpCircle size={15} className="text-cyan" />
-                  <span>Check for Understanding</span>
+                  <span>Socratic Concept Check</span>
                 </div>
                 <p className="check-text">{tutorState.concept_question}</p>
               </div>
@@ -250,19 +263,19 @@ export default function App() {
             </div>
           </div>
 
-          {/* Quick Prompt Suggestions */}
+          {/* Conceptual Discussion Chips */}
           <div className="prompt-chips-row">
-            <button onClick={() => handleSendMessage("What happens to vertical velocity vy at maximum height?")}>
-              🎯 Apex Velocity vy = 0
+            <button onClick={() => handleSendMessage("Both hit at the exact same time because gravity is vertical!")}>
+              🎯 Both hit at same time!
             </button>
-            <button onClick={() => handleSendMessage("How does air resistance change the trajectory?")}>
-              💨 Air Resistance Doubt
+            <button onClick={() => handleSendMessage("Why does the trajectory curve as a parabola?")}>
+              📐 Why Parabola shape?
             </button>
-            <button onClick={() => handleSendMessage("Why is maximum range at 45 degrees?")}>
-              📐 Why 45° for Range?
+            <button onClick={() => handleSendMessage("What about air drag and friction in real life?")}>
+              💨 Real-World Air Drag
             </button>
             <button onClick={() => handleSendMessage("Understood! Please advance to the next concept.")}>
-              ✅ Next Lesson
+              ✅ Next Concept
             </button>
           </div>
 
@@ -270,7 +283,7 @@ export default function App() {
           <form className="personal-input-form" onSubmit={(e) => { e.preventDefault(); handleSendMessage(inputVal); }}>
             <input 
               type="text" 
-              placeholder="Ask any physics doubt or answer the quiz question..."
+              placeholder="Reason out the physics question or ask any doubt..."
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               disabled={loading}
@@ -281,12 +294,16 @@ export default function App() {
           </form>
         </aside>
 
-        {/* Right Side: Professor Writing Directly on the Blackboard */}
+        {/* Right Side: Professor Writing Conceptual Notes on Blackboard */}
         <TeacherWhiteboardScene 
           dialogueText={tutorState.spoken_dialogue}
-          mathLatex={tutorState.math_latex || tutorState.whiteboard?.math_latex}
+          mathLatex={tutorState.whiteboard?.math_latex}
+          chalkNotes={tutorState.whiteboard?.chalk_notes}
           isSpeaking={isSpeaking}
-          topicTitle={tutorState.rag_topic || "Kinematics 2D: Projectile Motion"}
+          topicTitle={tutorState.whiteboard?.concept_title || tutorState.rag_topic || "Kinematics Conceptual Foundations"}
+          velocity={tutorState.whiteboard?.velocity || 25}
+          angle={tutorState.whiteboard?.angle || 45}
+          gravity={tutorState.whiteboard?.gravity || 9.8}
         />
 
       </div>

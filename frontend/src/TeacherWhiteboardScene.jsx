@@ -1,22 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
-import { Play, Pause, RotateCcw, Sparkles } from 'lucide-react';
+import { Sparkles, Activity } from 'lucide-react';
 
 export default function TeacherWhiteboardScene({
   dialogueText = "",
   mathLatex = "",
+  chalkNotes = [],
   isSpeaking = false,
   topicTitle = "Kinematics 2D: Projectile Motion",
-  lessonStep = 1
+  velocity = 25,
+  angle = 45,
+  gravity = 9.8
 }) {
-  const [displayedHandwriting, setDisplayedHandwriting] = useState("");
-  const [displayedLatex, setDisplayedLatex] = useState("");
-  const [handPos, setHandPos] = useState({ x: 190, y: 140 });
+  const [displayedLines, setDisplayedLines] = useState([]);
   const [mouthOpen, setMouthOpen] = useState(0);
+  const [handPos, setHandPos] = useState({ x: 190, y: 130 });
   const [isWriting, setIsWriting] = useState(false);
-  const [boardLines, setBoardLines] = useState([]);
-  
+
   const canvasRef = useRef(null);
   const mathRef = useRef(null);
 
@@ -33,49 +34,48 @@ export default function TeacherWhiteboardScene({
     return () => clearInterval(interval);
   }, [isSpeaking]);
 
-  // Step-by-step chalk writing animation when dialogue / formula changes
+  // Step-by-step chalk handwriting animation for conceptual bullet points
   useEffect(() => {
     setIsWriting(true);
-    setDisplayedHandwriting("");
-    
-    const explanationScript = [
-      "1. Decompose Motion:  r(t) = x(t)î + y(t)ĵ",
-      "2. Horizontal (ax = 0):  vx = u·cos(θ)  [CONSTANT]",
-      "3. Vertical (ay = -g):  vy(t) = u·sin(θ) - gt",
-      "4. At Apex Height:  vy = 0  =>  H_max = (u²·sin²θ) / 2g",
-      "5. Max Range at 45°:  R = (u²·sin 2θ) / g"
+    setDisplayedLines([]);
+
+    const script = chalkNotes && chalkNotes.length > 0 ? chalkNotes : [
+      "• Core Principle: Horizontal & Vertical motions are completely independent.",
+      "• Gravity pulls strictly DOWNWARD (y-axis: ay = -g).",
+      "• Zero horizontal force (ax = 0) => horizontal speed vx stays constant.",
+      "• Result: The path is a pure mathematical parabola y(x) = Ax - Bx²."
     ];
 
-    let currentLineIndex = 0;
-    let currentCharIndex = 0;
-    let accumulated = [];
+    let lineIdx = 0;
+    let charIdx = 0;
+    let currentAcc = [];
 
-    const typingInterval = setInterval(() => {
-      if (currentLineIndex < explanationScript.length) {
-        const line = explanationScript[currentLineIndex];
-        if (currentCharIndex < line.length) {
-          currentCharIndex++;
-          // Move teacher's hand to mimic writing
+    const timer = setInterval(() => {
+      if (lineIdx < script.length) {
+        const line = script[lineIdx];
+        if (charIdx < line.length) {
+          charIdx++;
+          // Hand tracking for chalk writing
           setHandPos({
-            x: 220 + (currentCharIndex * 7) % 320,
-            y: 110 + currentLineIndex * 32
+            x: 210 + (charIdx * 7) % 340,
+            y: 110 + lineIdx * 34
           });
         } else {
-          accumulated.push(line);
-          currentLineIndex++;
-          currentCharIndex = 0;
+          currentAcc.push(line);
+          lineIdx++;
+          charIdx = 0;
         }
-        setBoardLines([...accumulated, line.substring(0, currentCharIndex)]);
+        setDisplayedLines([...currentAcc, line.substring(0, charIdx)]);
       } else {
         setIsWriting(false);
-        clearInterval(typingInterval);
+        clearInterval(timer);
       }
-    }, 35);
+    }, 30);
 
-    return () => clearInterval(typingInterval);
-  }, [mathLatex, lessonStep]);
+    return () => clearInterval(timer);
+  }, [chalkNotes, mathLatex, topicTitle]);
 
-  // Render KaTeX Math Header
+  // KaTeX Equation rendering
   useEffect(() => {
     if (mathRef.current && mathLatex) {
       try {
@@ -84,12 +84,12 @@ export default function TeacherWhiteboardScene({
           throwOnError: false
         });
       } catch (e) {
-        console.error(e);
+        console.error("KaTeX render error:", e);
       }
     }
   }, [mathLatex]);
 
-  // Draw Chalkboard Diagrams & Trajectory
+  // Real-time Trajectory & Vectors Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -111,8 +111,8 @@ export default function TeacherWhiteboardScene({
         ctx.stroke();
       }
 
-      // Draw Ground Coordinate Axis
-      const groundY = 240;
+      // Ground Coordinate Axis
+      const groundY = 245;
       const originX = 180;
 
       ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
@@ -130,45 +130,42 @@ export default function TeacherWhiteboardScene({
 
       ctx.fillStyle = '#94a3b8';
       ctx.font = '11px "JetBrains Mono", monospace';
-      ctx.fillText("Y (Vertical, ay = -g)", originX + 8, 55);
-      ctx.fillText("X (Horizontal, ax = 0)", canvas.width - 150, groundY - 8);
+      ctx.fillText("Y (Vertical: ay = -g)", originX + 8, 55);
+      ctx.fillText("X (Horizontal: ax = 0)", canvas.width - 155, groundY - 8);
 
-      // Animated Parabolic Trajectory
-      const v0 = 26;
-      const thetaRad = (45 * Math.PI) / 180;
-      const g = 9.8;
-      const vx0 = v0 * Math.cos(thetaRad);
-      const vy0 = v0 * Math.sin(thetaRad);
-      const totalT = (2 * vy0) / g;
+      // Trajectory Math
+      const thetaRad = (angle * Math.PI) / 180;
+      const vx0 = velocity * Math.cos(thetaRad);
+      const vy0 = velocity * Math.sin(thetaRad);
+      const totalT = (2 * vy0) / gravity;
       const scale = 5.2;
 
-      // Dashed Chalk Parabola Outline
+      // Dashed Outline
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
       ctx.setLineDash([4, 4]);
       ctx.lineWidth = 2;
       ctx.beginPath();
       for (let st = 0; st <= totalT; st += 0.04) {
         const px = originX + (vx0 * st) * scale;
-        const py = groundY - (vy0 * st - 0.5 * g * st * st) * scale;
+        const py = groundY - (vy0 * st - 0.5 * gravity * st * st) * scale;
         if (st === 0) ctx.moveTo(px, py);
         else ctx.lineTo(px, py);
       }
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Active Particle & Vector Arrows
+      // Active Traced Path & Particle
       const curT = Math.min(t, totalT);
       const curX = originX + (vx0 * curT) * scale;
-      const curY = groundY - (vy0 * curT - 0.5 * g * curT * curT) * scale;
-      const curVy = vy0 - g * curT;
+      const curY = groundY - (vy0 * curT - 0.5 * gravity * curT * curT) * scale;
+      const curVy = vy0 - gravity * curT;
 
-      // Solid Path
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 3;
       ctx.beginPath();
       for (let st = 0; st <= curT; st += 0.02) {
         const px = originX + (vx0 * st) * scale;
-        const py = groundY - (vy0 * st - 0.5 * g * st * st) * scale;
+        const py = groundY - (vy0 * st - 0.5 * gravity * st * st) * scale;
         if (st === 0) ctx.moveTo(px, py);
         else ctx.lineTo(px, py);
       }
@@ -180,9 +177,9 @@ export default function TeacherWhiteboardScene({
       ctx.arc(curX, curY, 5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Draw Chalk Vectors (vx: Cyan, vy: Emerald, v: Gold)
-      drawChalkArrow(ctx, curX, curY, curX + vx0 * 1.6, curY, '#38bdf8', 'vx');
-      drawChalkArrow(ctx, curX, curY, curX, curY - curVy * 1.6, '#34d399', 'vy');
+      // Chalk Vector Arrows (vx: Cyan, vy: Emerald, v: Gold)
+      drawChalkArrow(ctx, curX, curY, curX + vx0 * 1.6, curY, '#38bdf8', 'vx (constant)');
+      drawChalkArrow(ctx, curX, curY, curX, curY - curVy * 1.6, '#34d399', 'vy (changing)');
       drawChalkArrow(ctx, curX, curY, curX + vx0 * 1.6, curY - curVy * 1.6, '#fbbf24', 'v');
 
       t += 0.025;
@@ -193,7 +190,7 @@ export default function TeacherWhiteboardScene({
 
     renderBoard();
     return () => cancelAnimationFrame(animId);
-  }, []);
+  }, [velocity, angle, gravity]);
 
   const drawChalkArrow = (ctx, fromX, fromY, toX, toY, color, label) => {
     const headlen = 6;
@@ -222,7 +219,7 @@ export default function TeacherWhiteboardScene({
 
   return (
     <div className="teacher-whiteboard-scene-container">
-      {/* Top Blackboard Wooden Header */}
+      {/* Top Blackboard Toolbar */}
       <div className="scene-toolbar">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-gold" />
@@ -231,29 +228,29 @@ export default function TeacherWhiteboardScene({
         <span className="scene-topic-badge">{topicTitle}</span>
       </div>
 
-      {/* Main Classroom Slate Scene */}
+      {/* Main Blackboard Surface */}
       <div className="scene-slate-stage">
         
-        {/* Layer 1: Blackboard KaTeX Formula Box */}
+        {/* Layer 1: KaTeX Formula Card */}
         <div className="chalk-math-card">
-          <div className="chalk-math-label">DERIVATION FORMULATION</div>
+          <div className="chalk-math-label">PHYSICAL FORMULATION</div>
           <div ref={mathRef} className="chalk-katex-view"></div>
         </div>
 
-        {/* Layer 2: Real-time Canvas with Trajectory & Vectors */}
+        {/* Layer 2: Real-Time Blackboard Trajectory Simulation */}
         <div className="scene-canvas-container">
           <canvas ref={canvasRef} width={760} height={260} className="scene-canvas" />
 
-          {/* Layer 3: Live Chalk Handwriting Lines written by Professor */}
+          {/* Layer 3: Conceptual Chalk Handwriting Lines written by Professor */}
           <div className="chalk-handwriting-overlay">
-            {boardLines.map((line, idx) => (
+            {displayedLines.map((line, idx) => (
               <div key={idx} className="chalk-line-text">
                 {line}
               </div>
             ))}
           </div>
 
-          {/* Layer 4: Animated Teacher Avatar standing in the Scene */}
+          {/* Layer 4: Animated Teacher Avatar standing in the Scene with Chalk */}
           <div className="in-scene-teacher-avatar">
             <svg viewBox="0 0 160 260" className="teacher-full-body-svg" width="140" height="230">
               <defs>
@@ -267,18 +264,17 @@ export default function TeacherWhiteboardScene({
                 </linearGradient>
               </defs>
 
-              {/* Lower Body & Skirt */}
+              {/* Lower Body */}
               <polygon points="45,170 115,170 125,250 35,250" fill="#0f172a" />
-              {/* Shoes */}
               <ellipse cx="55" cy="255" rx="14" ry="4" fill="#000000" />
               <ellipse cx="105" cy="255" rx="14" ry="4" fill="#000000" />
 
-              {/* Torso & Professor Suit Jacket */}
+              {/* Suit Jacket */}
               <path d="M 38 175 L 42 110 L 62 100 L 98 100 L 118 110 L 122 175 Z" fill="url(#teacherSuit)" />
               <polygon points="70,100 90,100 80,130" fill="#ffffff" />
               <polygon points="78,110 82,110 81,148 79,148" fill="#38bdf8" />
 
-              {/* Left Arm (Resting on side) */}
+              {/* Left Arm */}
               <path d="M 42 110 Q 25 140 32 170" stroke="#0f172a" strokeWidth="12" strokeLinecap="round" fill="none" />
               <circle cx="32" cy="170" r="6" fill="#f0b288" />
 
@@ -298,7 +294,7 @@ export default function TeacherWhiteboardScene({
               <circle cx="66.5" cy="56.5" r="1.2" fill="#ffffff" />
               <circle cx="90.5" cy="56.5" r="1.2" fill="#ffffff" />
 
-              {/* Nose & Mouth (Animated Lip Sync) */}
+              {/* Mouth (Animated Lip-Sync) */}
               <path d="M 80 58 L 78 67 L 82 67" stroke="#d4916a" strokeWidth="1.5" fill="none" />
               <ellipse 
                 cx="80" 
@@ -310,7 +306,7 @@ export default function TeacherWhiteboardScene({
                 strokeWidth="1"
               />
 
-              {/* Right Arm & Chalk Hand (Gesturing and Writing on Board) */}
+              {/* Right Arm & Chalk Hand (Writing Gesture) */}
               <path 
                 d={`M 118 110 Q ${handPos.x * 0.4 + 40} ${handPos.y * 0.4 + 40} 145 95`} 
                 stroke="#0f172a" 
@@ -318,7 +314,6 @@ export default function TeacherWhiteboardScene({
                 strokeLinecap="round" 
                 fill="none" 
               />
-              {/* Hand holding White Chalk */}
               <circle cx="145" cy="95" r="6" fill="#f0b288" />
               <rect x="145" y="90" width="8" height="4" fill="#ffffff" rx="1" transform="rotate(-30 145 90)" />
             </svg>
