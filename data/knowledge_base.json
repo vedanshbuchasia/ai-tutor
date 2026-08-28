@@ -1,0 +1,287 @@
+{
+  "course_title": "Kinematics: 1D & 2D Projectile Motion",
+  "total_items": 40,
+  "total_frames": 40,
+  "items": [
+    {
+      "id": "frame_0",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 0m 0s",
+      "timestamp": 0.0,
+      "frame_to_display": "frame_000.jpg"
+    },
+    {
+      "id": "frame_1",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 0m 8s",
+      "timestamp": 8.0,
+      "frame_to_display": "frame_001.jpg"
+    },
+    {
+      "id": "frame_2",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 0m 16s",
+      "timestamp": 16.0,
+      "frame_to_display": "frame_002.jpg"
+    },
+    {
+      "id": "frame_3",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 0m 24s",
+      "timestamp": 24.0,
+      "frame_to_display": "frame_003.jpg"
+    },
+    {
+      "id": "frame_4",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 0m 32s",
+      "timestamp": 32.0,
+      "frame_to_display": "frame_004.jpg"
+    },
+    {
+      "id": "frame_5",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 0m 40s",
+      "timestamp": 40.0,
+      "frame_to_display": "frame_005.jpg"
+    },
+    {
+      "id": "frame_6",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 0m 48s",
+      "timestamp": 48.0,
+      "frame_to_display": "frame_006.jpg"
+    },
+    {
+      "id": "frame_7",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 0m 56s",
+      "timestamp": 56.0,
+      "frame_to_display": "frame_007.jpg"
+    },
+    {
+      "id": "frame_8",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 1m 4s",
+      "timestamp": 64.0,
+      "frame_to_display": "frame_008.jpg"
+    },
+    {
+      "id": "frame_9",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 1m 12s",
+      "timestamp": 72.0,
+      "frame_to_display": "frame_009.jpg"
+    },
+    {
+      "id": "frame_10",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 1m 20s",
+      "timestamp": 80.0,
+      "frame_to_display": "frame_010.jpg"
+    },
+    {
+      "id": "frame_11",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 1m 28s",
+      "timestamp": 88.0,
+      "frame_to_display": "frame_011.jpg"
+    },
+    {
+      "id": "frame_12",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 1m 36s",
+      "timestamp": 96.0,
+      "frame_to_display": "frame_012.jpg"
+    },
+    {
+      "id": "frame_13",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 1m 44s",
+      "timestamp": 104.0,
+      "frame_to_display": "frame_013.jpg"
+    },
+    {
+      "id": "frame_14",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 1m 52s",
+      "timestamp": 112.0,
+      "frame_to_display": "frame_014.jpg"
+    },
+    {
+      "id": "frame_15",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 2m 0s",
+      "timestamp": 120.0,
+      "frame_to_display": "frame_015.jpg"
+    },
+    {
+      "id": "frame_16",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 2m 8s",
+      "timestamp": 128.0,
+      "frame_to_display": "frame_016.jpg"
+    },
+    {
+      "id": "frame_17",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 2m 16s",
+      "timestamp": 136.0,
+      "frame_to_display": "frame_017.jpg"
+    },
+    {
+      "id": "frame_18",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 2m 24s",
+      "timestamp": 144.0,
+      "frame_to_display": "frame_018.jpg"
+    },
+    {
+      "id": "frame_19",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 2m 32s",
+      "timestamp": 152.0,
+      "frame_to_display": "frame_019.jpg"
+    },
+    {
+      "id": "frame_20",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 2m 40s",
+      "timestamp": 160.0,
+      "frame_to_display": "frame_020.jpg"
+    },
+    {
+      "id": "frame_21",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 2m 48s",
+      "timestamp": 168.0,
+      "frame_to_display": "frame_021.jpg"
+    },
+    {
+      "id": "frame_22",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 2m 56s",
+      "timestamp": 176.0,
+      "frame_to_display": "frame_022.jpg"
+    },
+    {
+      "id": "frame_23",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 3m 4s",
+      "timestamp": 184.0,
+      "frame_to_display": "frame_023.jpg"
+    },
+    {
+      "id": "frame_24",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 3m 12s",
+      "timestamp": 192.0,
+      "frame_to_display": "frame_024.jpg"
+    },
+    {
+      "id": "frame_25",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 3m 20s",
+      "timestamp": 200.0,
+      "frame_to_display": "frame_025.jpg"
+    },
+    {
+      "id": "frame_26",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 3m 28s",
+      "timestamp": 208.0,
+      "frame_to_display": "frame_026.jpg"
+    },
+    {
+      "id": "frame_27",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 3m 36s",
+      "timestamp": 216.0,
+      "frame_to_display": "frame_027.jpg"
+    },
+    {
+      "id": "frame_28",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 3m 44s",
+      "timestamp": 224.0,
+      "frame_to_display": "frame_028.jpg"
+    },
+    {
+      "id": "frame_29",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 3m 52s",
+      "timestamp": 232.0,
+      "frame_to_display": "frame_029.jpg"
+    },
+    {
+      "id": "frame_30",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 4m 0s",
+      "timestamp": 240.0,
+      "frame_to_display": "frame_030.jpg"
+    },
+    {
+      "id": "frame_31",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 4m 8s",
+      "timestamp": 248.0,
+      "frame_to_display": "frame_031.jpg"
+    },
+    {
+      "id": "frame_32",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 4m 16s",
+      "timestamp": 256.0,
+      "frame_to_display": "frame_032.jpg"
+    },
+    {
+      "id": "frame_33",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 4m 24s",
+      "timestamp": 264.0,
+      "frame_to_display": "frame_033.jpg"
+    },
+    {
+      "id": "frame_34",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 4m 32s",
+      "timestamp": 272.0,
+      "frame_to_display": "frame_034.jpg"
+    },
+    {
+      "id": "frame_35",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 4m 40s",
+      "timestamp": 280.0,
+      "frame_to_display": "frame_035.jpg"
+    },
+    {
+      "id": "frame_36",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 4m 48s",
+      "timestamp": 288.0,
+      "frame_to_display": "frame_036.jpg"
+    },
+    {
+      "id": "frame_37",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 4m 56s",
+      "timestamp": 296.0,
+      "frame_to_display": "frame_037.jpg"
+    },
+    {
+      "id": "frame_38",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 5m 4s",
+      "timestamp": 304.0,
+      "frame_to_display": "frame_038.jpg"
+    },
+    {
+      "id": "frame_39",
+      "topic": "Video Lecture Visual",
+      "text": "Kinematics Lecture Visual at 5m 12s",
+      "timestamp": 312.0,
+      "frame_to_display": "frame_039.jpg"
+    }
+  ]
+}
