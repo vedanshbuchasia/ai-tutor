@@ -1,10 +1,10 @@
 import React from 'react';
-import ComprehensiveCourseClassroom from './ComprehensiveCourseClassroom';
+import ContinuousMasterClass from './ContinuousMasterClass';
 
 export default function App() {
   return (
     <div className="personal-app-container">
-      <ComprehensiveCourseClassroom />
+      <ContinuousMasterClass />
     </div>
   );
 }
