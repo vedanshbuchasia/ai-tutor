@@ -1,10 +1,10 @@
 import React from 'react';
-import LectureClassroom from './LectureClassroom';
+import ComprehensiveCourseClassroom from './ComprehensiveCourseClassroom';
 
 export default function App() {
   return (
     <div className="personal-app-container">
-      <LectureClassroom />
+      <ComprehensiveCourseClassroom />
     </div>
   );
 }
