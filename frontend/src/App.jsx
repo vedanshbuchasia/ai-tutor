@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import RoughBlackboardEngine from './RoughBlackboardEngine';
+import ChalkboardMasterClass from './ChalkboardMasterClass';
 import { 
   Sparkles, 
   Volume2, 
@@ -10,7 +10,9 @@ import {
   Send,
   HelpCircle,
   AlertCircle,
-  GraduationCap
+  GraduationCap,
+  Calculator,
+  Compass
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8000';
@@ -27,23 +29,7 @@ export default function App() {
     doubts_logged: []
   });
 
-  const [tutorState, setTutorState] = useState({
-    spoken_dialogue: "Let's break down 2D projectile motion. Notice how gravity pulls strictly downward on the vertical axis, while the horizontal speed glides forward with zero resistance.",
-    timeline_script: {
-      spoken_audio: "Let's break down 2D projectile motion. Notice how gravity pulls strictly downward on the vertical axis, while the horizontal speed glides forward with zero resistance.",
-      board_actions: [
-        { timestamp_ms: 0, action: "draw_axes", params: { x_label: "X (Range, ax = 0)", y_label: "Y (Height, ay = -g)", style: "hand_drawn" } },
-        { timestamp_ms: 1200, action: "trace_curve", params: { type: "parabola", v0: 26, angle: 45, duration_ms: 3200 } },
-        { timestamp_ms: 2800, action: "write_equation", params: { latex: "1. r(t) = (u·cos θ)t î + ((u·sin θ)t - ½gt²) ĵ", position: { x: 190, y: 18 }, write_duration_ms: 1800 } },
-        { timestamp_ms: 4200, action: "write_equation", params: { latex: "2. Horizontal vx = u·cos θ [CONSTANT]", position: { x: 190, y: 54 }, write_duration_ms: 1500 } },
-        { timestamp_ms: 5600, action: "draw_vector", params: { direction: "down", label: "ay = -g", color: "highlight" } }
-      ]
-    },
-    concept_question: "If you drop a coin from your hand while throwing another coin horizontally from the same height, which one hits the ground first?",
-    action_type: "TEACH",
-    rag_topic: "The Independence of Perpendicular Motions"
-  });
-
+  const [lesson, setLesson] = useState(null);
   const [inputVal, setInputVal] = useState('');
   const [chatLog, setChatLog] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -106,7 +92,7 @@ export default function App() {
       if (!res.ok) throw new Error("Server error");
       const data = await res.json();
 
-      setTutorState(data);
+      setLesson(data);
       if (typeof data.user_mastery === 'number') {
         setUserProfile(prev => ({ ...prev, mastery_score: data.user_mastery }));
       }
@@ -114,7 +100,7 @@ export default function App() {
       setChatLog(prev => [...prev, {
         sender: 'tutor',
         dialogue: data.spoken_dialogue,
-        question: data.concept_question,
+        quiz: data.concept_quiz,
         action: data.action_type
       }]);
 
@@ -122,7 +108,7 @@ export default function App() {
         speakText(data.spoken_dialogue);
       }
     } catch (err) {
-      console.warn("Using local adaptive timeline:", err);
+      console.warn("Using local adaptive lesson:", err);
     } finally {
       setLoading(false);
     }
@@ -137,7 +123,7 @@ export default function App() {
         body: JSON.stringify({ api_key: apiKey })
       });
       setShowKeyModal(false);
-      handleSendMessage("Connect Gemini LLM timeline engine");
+      handleSendMessage("Connect Gemini AI Tutor");
     } catch (e) {
       console.error(e);
     }
@@ -145,12 +131,14 @@ export default function App() {
 
   const getActionBadge = (action) => {
     switch (action) {
+      case 'SOLVE_PROBLEM':
+        return <span className="badge badge-solve"><Calculator size={13}/> Solving Problem on Board</span>;
       case 'ANSWER_TANGENT':
-        return <span className="badge badge-tangent"><AlertCircle size={13}/> Conceptual Doubt Clarification</span>;
+        return <span className="badge badge-tangent"><AlertCircle size={13}/> Answering Your Doubt</span>;
       case 'REMEDIATE':
         return <span className="badge badge-remediate"><Sparkles size={13}/> Intuitive Coaching</span>;
       default:
-        return <span className="badge badge-teach"><GraduationCap size={13}/> Socratic Timeline Lesson</span>;
+        return <span className="badge badge-teach"><GraduationCap size={13}/> Interactive MasterClass</span>;
     }
   };
 
@@ -163,8 +151,8 @@ export default function App() {
             <Sparkles size={20} />
           </div>
           <div>
-            <h2>Kinematics Rough.js Blackboard Tutor</h2>
-            <p className="brand-tagline">3 Pillars of Animated Blackboard Teaching • LLM Timeline Script</p>
+            <h2>Kinematics AI MasterClass Tutor</h2>
+            <p className="brand-tagline">Google Gemini & Qdrant RAG • Live Blackboard Problem Solving</p>
           </div>
         </div>
 
@@ -181,7 +169,7 @@ export default function App() {
             onClick={() => {
               const next = !speechEnabled;
               setSpeechEnabled(next);
-              if (next && tutorState.spoken_dialogue) speakText(tutorState.spoken_dialogue);
+              if (next && lesson?.spoken_dialogue) speakText(lesson.spoken_dialogue);
               else window.speechSynthesis?.cancel();
             }}
             title={speechEnabled ? "Voice Enabled" : "Enable Voice"}
@@ -194,7 +182,7 @@ export default function App() {
       {/* Main Split Grid */}
       <div className="personal-main-grid">
         
-        {/* Left Side: Student Profile & Dialogue */}
+        {/* Left Side: Student Profile & Socratic Dialogue */}
         <aside className="personal-avatar-panel">
           
           {/* Student Profile Card */}
@@ -206,7 +194,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4>{userProfile?.name || "Vedansh"}</h4>
-                  <span className="profile-subtitle">Personal 1-on-1 Session</span>
+                  <span className="profile-subtitle">1-on-1 Physics Mastery</span>
                 </div>
               </div>
 
@@ -226,25 +214,25 @@ export default function App() {
 
           {/* Action & Grounding */}
           <div className="action-grounding-bar">
-            {getActionBadge(tutorState.action_type)}
-            {tutorState.rag_topic && (
-              <span className="rag-ground-chip">{tutorState.rag_topic}</span>
+            {getActionBadge(lesson?.action_type)}
+            {lesson?.concept_summary && (
+              <span className="rag-ground-chip">{lesson.topic_title}</span>
             )}
           </div>
 
           {/* Spoken Dialogue & Socratic Question Area */}
           <div className="personal-dialogue-area">
             <div className="active-speech-bubble">
-              <p className="speech-text">{tutorState.spoken_dialogue}</p>
+              <p className="speech-text">{lesson?.spoken_dialogue}</p>
             </div>
 
-            {tutorState.concept_question && (
+            {lesson?.concept_quiz && (
               <div className="socratic-check-box">
                 <div className="check-title">
                   <HelpCircle size={15} className="text-cyan" />
                   <span>Socratic Concept Check</span>
                 </div>
-                <p className="check-text">{tutorState.concept_question}</p>
+                <p className="check-text">{lesson.concept_quiz}</p>
               </div>
             )}
 
@@ -259,19 +247,22 @@ export default function App() {
             </div>
           </div>
 
-          {/* Quick Prompt Chips */}
+          {/* Quick Problem Solving & Doubt Chips */}
           <div className="prompt-chips-row">
-            <button onClick={() => handleSendMessage("Both hit at the exact same time because gravity is vertical!")}>
-              🎯 Both hit at same time!
+            <button onClick={() => handleSendMessage("Solve the next example problem on the board!")}>
+              📝 Solve Next Problem
             </button>
-            <button onClick={() => handleSendMessage("Why does the trajectory curve as a parabola?")}>
-              📐 Why Parabola shape?
+            <button onClick={() => handleSendMessage("Both hit at the exact same millisecond!")}>
+              🎯 Both hit at same time
             </button>
-            <button onClick={() => handleSendMessage("What about air drag and friction in real life?")}>
-              💨 Real-World Air Drag
+            <button onClick={() => handleSendMessage("Why is maximum range at 45 degrees?")}>
+              📐 Why 45° for Range?
             </button>
-            <button onClick={() => handleSendMessage("Understood! Please advance to the next concept.")}>
-              ✅ Next Lesson
+            <button onClick={() => handleSendMessage("What happens to vertical velocity vy at maximum apex height?")}>
+              ⛰️ Apex vy = 0 Proof
+            </button>
+            <button onClick={() => handleSendMessage("What about real-world air resistance and aerodynamic drag?")}>
+              💨 Air Resistance
             </button>
           </div>
 
@@ -279,7 +270,7 @@ export default function App() {
           <form className="personal-input-form" onSubmit={(e) => { e.preventDefault(); handleSendMessage(inputVal); }}>
             <input 
               type="text" 
-              placeholder="Reason out the physics question or ask any doubt..."
+              placeholder="Answer quiz or ask the professor to solve any problem..."
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               disabled={loading}
@@ -290,12 +281,13 @@ export default function App() {
           </form>
         </aside>
 
-        {/* Right Side: Rough.js Animated Blackboard Engine */}
-        <RoughBlackboardEngine 
-          timelineScript={tutorState.timeline_script}
+        {/* Right Side: Chalkboard MasterClass Scene */}
+        <ChalkboardMasterClass 
+          lesson={lesson}
           isSpeaking={isSpeaking}
+          onNextQuestion={() => handleSendMessage("Solve the next question")}
           onReplay={() => {
-            if (speechEnabled && tutorState.spoken_dialogue) speakText(tutorState.spoken_dialogue);
+            if (speechEnabled && lesson?.spoken_dialogue) speakText(lesson.spoken_dialogue);
           }}
         />
 
