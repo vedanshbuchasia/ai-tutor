@@ -1,10 +1,10 @@
 import React from 'react';
-import ContinuousMasterClass from './ContinuousMasterClass';
+import BigBoardSlidesClassroom from './BigBoardSlidesClassroom';
 
 export default function App() {
   return (
     <div className="personal-app-container">
-      <ContinuousMasterClass />
+      <BigBoardSlidesClassroom />
     </div>
   );
 }
