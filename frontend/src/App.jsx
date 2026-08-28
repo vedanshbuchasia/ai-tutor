@@ -1,48 +1,53 @@
 import React, { useState, useEffect, useRef } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
+import PhysicsCanvas from './PhysicsCanvas';
 import { 
   Sparkles, 
   Volume2, 
   VolumeX, 
   Send, 
   HelpCircle, 
-  CheckCircle2, 
-  ArrowRight, 
-  BookOpen, 
+  Key,
   GraduationCap, 
   Layers, 
   AlertCircle,
   RefreshCw,
-  Maximize2
+  Maximize2,
+  Database,
+  Activity,
+  Image as ImageIcon
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8000';
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [totalSteps, setTotalSteps] = useState(5);
-  const [curriculum, setCurriculum] = useState([]);
+  const [activeBoardTab, setActiveBoardTab] = useState('sim'); // 'sim' | 'diagram'
   
   const [tutorState, setTutorState] = useState({
-    spoken_dialogue: "Welcome to Kinematics! Today we explore 2D Projectile Motion step-by-step. Look at the board to see how motion is decomposed into horizontal and vertical components.",
+    spoken_dialogue: "Welcome! I am your Multimodal AI Physics Tutor. Today we are exploring 2D Projectile Motion. Look at the animated blackboard: the blue trajectory traces the parabolic path, while the arrows represent horizontal velocity vx and changing vertical velocity vy.",
     frame_to_display: "frame_000.jpg",
-    math_latex: "\\vec{r}(t) = x(t)\\hat{i} + y(t)\\hat{j}",
+    math_latex: "\\vec{r}(t) = (u\\cos\\theta)t\\hat{i} + ((u\\sin\\theta)t - \\frac{1}{2}gt^2)\\hat{j}",
     concept_question: "Can horizontal motion affect the time it takes for a projectile to fall to the ground?",
-    action_type: "TEACH"
+    action_type: "TEACH",
+    simulation_params: { velocity: 25, angle: 45, gravity: 9.8 },
+    rag_grounding: []
   });
 
   const [inputMessage, setInputMessage] = useState('');
   const [chatLog, setChatLog] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [speechEnabled, setSpeechEnabled] = useState(false);
+  const [speechEnabled, setSpeechEnabled] = useState(true);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedFrameZoom, setSelectedFrameZoom] = useState(null);
+  const [apiKey, setApiKey] = useState('');
+  const [showKeyModal, setShowKeyModal] = useState(false);
 
   const mathRef = useRef(null);
   const chatEndRef = useRef(null);
 
-  // Render KaTeX Math whenever math_latex updates
+  // Render KaTeX Math
   useEffect(() => {
     if (mathRef.current && tutorState.math_latex) {
       try {
@@ -51,33 +56,21 @@ export default function App() {
           throwOnError: false
         });
       } catch (err) {
-        console.error("KaTeX render error:", err);
+        console.error("KaTeX error:", err);
       }
     }
   }, [tutorState.math_latex]);
 
-  // Load initial curriculum
+  // Initial prompt
   useEffect(() => {
-    fetch(`${API_BASE}/curriculum`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.steps) {
-          setCurriculum(data.steps);
-          setTotalSteps(data.steps.length);
-        }
-      })
-      .catch(err => console.log("API not ready yet, using offline state"));
-
-    // Initial greeting
-    handleSend("hello", true);
+    handleSend("start", true);
   }, []);
 
-  // Text-To-Speech
   const speakText = (text) => {
     if (!speechEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
+    utterance.rate = 0.95;
     utterance.pitch = 1.05;
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
@@ -103,7 +96,8 @@ export default function App() {
         body: JSON.stringify({
           user_message: text,
           current_step: currentStep,
-          conversation_history: chatLog
+          conversation_history: chatLog,
+          api_key: apiKey
         })
       });
 
@@ -122,14 +116,29 @@ export default function App() {
         action: data.action_type
       }]);
 
-      if (speechEnabled) {
+      if (speechEnabled && data.spoken_dialogue) {
         speakText(data.spoken_dialogue);
       }
     } catch (err) {
-      console.warn("Backend offline, using internal fallback:", err);
+      console.warn("API error:", err);
     } finally {
       setLoading(false);
       setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    }
+  };
+
+  const saveApiKey = async () => {
+    if (!apiKey) return;
+    try {
+      await fetch(`${API_BASE}/set_api_key`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: apiKey })
+      });
+      setShowKeyModal(false);
+      handleSend("Evaluate my syllabus with Gemini");
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -140,7 +149,7 @@ export default function App() {
       case 'REMEDIATE':
         return <span className="badge badge-remediate"><RefreshCw size={14}/> Clarifying Concept</span>;
       default:
-        return <span className="badge badge-teach"><GraduationCap size={14}/> Delivering Lesson</span>;
+        return <span className="badge badge-teach"><GraduationCap size={14}/> Delivering Vector RAG Lesson</span>;
     }
   };
 
@@ -151,8 +160,8 @@ export default function App() {
         <div className="nav-brand">
           <div className="logo-icon"><Sparkles size={20} /></div>
           <div>
-            <h1>Kinematics AI Blackboard Tutor</h1>
-            <p className="nav-subtitle">Proactive Multimodal Visual Classroom</p>
+            <h1>Kinematics Multimodal Vector RAG Tutor</h1>
+            <p className="nav-subtitle">Live Vector Grounding • Animated Visual Blackboard</p>
           </div>
         </div>
 
@@ -164,16 +173,23 @@ export default function App() {
               className={`step-node ${idx === currentStep ? 'active' : ''} ${idx < currentStep ? 'completed' : ''}`}
               onClick={() => {
                 setCurrentStep(idx);
-                handleSend(`Go to step ${idx + 1}`);
+                handleSend(`Teach stage ${idx + 1}`);
               }}
             >
               <div className="node-circle">{idx < currentStep ? '✓' : idx + 1}</div>
-              <span className="node-label">Step {idx + 1}</span>
+              <span className="node-label">Stage {idx + 1}</span>
             </div>
           ))}
         </div>
 
         <div className="nav-controls">
+          <button 
+            className="btn-icon"
+            onClick={() => setShowKeyModal(true)}
+            title="Configure Gemini API Key"
+          >
+            <Key size={18}/>
+          </button>
           <button 
             className={`btn-icon ${speechEnabled ? 'active' : ''}`}
             onClick={() => {
@@ -211,17 +227,22 @@ export default function App() {
               <h3>Prof. Sophia</h3>
               <div className="status-indicator">
                 <span className="dot"></span>
-                <span>{isSpeaking ? 'Lecturing...' : 'Listening to you'}</span>
+                <span>{isSpeaking ? 'Narrating verbally...' : 'Listening & Ready'}</span>
               </div>
             </div>
           </div>
 
-          {/* Action Badge */}
-          <div className="current-action-bar">
+          {/* Action Badge & Vector Grounding Indicator */}
+          <div className="current-action-bar flex justify-between items-center">
             {getActionBadge(tutorState.action_type)}
+            {tutorState.rag_grounding?.length > 0 && (
+              <span className="rag-pill">
+                <Database size={12} /> {tutorState.rag_grounding[0].topic}
+              </span>
+            )}
           </div>
 
-          {/* Chat Stream & Dialogue */}
+          {/* Dialogue & Question Box */}
           <div className="dialogue-box">
             <div className="dialogue-message current-speech">
               <p className="dialogue-text">{tutorState.spoken_dialogue}</p>
@@ -237,7 +258,7 @@ export default function App() {
               </div>
             )}
 
-            {/* Conversation History */}
+            {/* Conversation Stream */}
             <div className="chat-history">
               {chatLog.slice(0, -1).map((msg, i) => (
                 <div key={i} className={`chat-bubble ${msg.sender}`}>
@@ -249,16 +270,19 @@ export default function App() {
             </div>
           </div>
 
-          {/* Quick Questions / Doubts Bar */}
+          {/* Quick Prompts */}
           <div className="quick-prompts">
-            <button onClick={() => handleSend("What about air resistance and friction?")}>
-              💡 Ask Doubt (Air Resistance)
+            <button onClick={() => handleSend("What about air resistance and aerodynamic drag?")}>
+              💡 Tangent: Air Drag?
             </button>
-            <button onClick={() => handleSend("Why is maximum range at 45 degrees?")}>
-              ❓ Why 45° for Range?
+            <button onClick={() => handleSend("Why is maximum range at 45 degrees angle?")}>
+              ❓ Why 45° for Max Range?
             </button>
-            <button onClick={() => handleSend("Understood, continue to next topic!")}>
-              ✅ Understood! Next Step
+            <button onClick={() => handleSend("What happens to vertical velocity vy at the apex?")}>
+              🎯 Apex Velocity
+            </button>
+            <button onClick={() => handleSend("Understood! Please advance to next concept.")}>
+              ✅ Next Lesson
             </button>
           </div>
 
@@ -266,7 +290,7 @@ export default function App() {
           <form className="input-area" onSubmit={(e) => { e.preventDefault(); handleSend(); }}>
             <input 
               type="text" 
-              placeholder="Answer quiz or ask any doubt (interrupt freely)..." 
+              placeholder="Answer question or interrupt with any physics doubt..." 
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               disabled={loading}
@@ -280,54 +304,99 @@ export default function App() {
         {/* Right Side: The Visual Blackboard */}
         <main className="right-panel">
           <div className="blackboard-frame">
+            
+            {/* Blackboard Tabs */}
             <div className="blackboard-header">
-              <div className="board-title">
-                <Layers size={18} />
-                <span>Lecture Blackboard • {tutorState.frame_to_display}</span>
+              <div className="flex items-center gap-4">
+                <div className="board-title">
+                  <Layers size={18} />
+                  <span>The Visual Physics Blackboard</span>
+                </div>
+                <div className="tab-pills">
+                  <button 
+                    className={`tab-btn ${activeBoardTab === 'sim' ? 'active' : ''}`}
+                    onClick={() => setActiveBoardTab('sim')}
+                  >
+                    <Activity size={14} /> Live Physics Simulation
+                  </button>
+                  <button 
+                    className={`tab-btn ${activeBoardTab === 'diagram' ? 'active' : ''}`}
+                    onClick={() => setActiveBoardTab('diagram')}
+                  >
+                    <ImageIcon size={14} /> Grounded Lecture Keyframe
+                  </button>
+                </div>
               </div>
+
               <div className="board-status">
-                <span>Topic: Kinematics 2D</span>
+                <span>Vector Grounded • {tutorState.frame_to_display}</span>
               </div>
             </div>
 
             <div className="blackboard-content">
+              
               {/* Dynamic Mathematical Equations via KaTeX */}
               <div className="math-display-card">
-                <div className="math-label">Active Physics Formulation</div>
+                <div className="math-label">Live Mathematical Formulation</div>
                 <div ref={mathRef} className="katex-render-area"></div>
               </div>
 
-              {/* Multimodal Keyframe Visual Display */}
-              <div className="visual-board">
-                <div className="diagram-header">
-                  <span>Visual Grounding (Grounded Keyframe from Lecture Video)</span>
-                  <button 
-                    className="btn-zoom"
-                    onClick={() => setSelectedFrameZoom(`${API_BASE}/frames/${tutorState.frame_to_display}`)}
-                  >
-                    <Maximize2 size={16} /> Expand Diagram
-                  </button>
-                </div>
+              {/* Main Visual Display Area */}
+              {activeBoardTab === 'sim' ? (
+                <PhysicsCanvas 
+                  velocity={tutorState.simulation_params?.velocity || 25}
+                  angle={tutorState.simulation_params?.angle || 45}
+                  gravity={tutorState.simulation_params?.gravity || 9.8}
+                />
+              ) : (
+                <div className="visual-board">
+                  <div className="diagram-header">
+                    <span>Grounded Video Keyframe: {tutorState.frame_to_display}</span>
+                    <button 
+                      className="btn-zoom"
+                      onClick={() => setSelectedFrameZoom(`${API_BASE}/frames/${tutorState.frame_to_display}`)}
+                    >
+                      <Maximize2 size={16} /> Expand Diagram
+                    </button>
+                  </div>
 
-                <div className="diagram-container">
-                  <img 
-                    src={`${API_BASE}/frames/${tutorState.frame_to_display}`} 
-                    alt="Kinematics Visual Diagram"
-                    className="diagram-image"
-                    onError={(e) => {
-                      // Fallback placeholder if image not yet populated
-                      e.target.src = "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1200&q=80";
-                    }}
-                  />
-                  <div className="diagram-overlay-caption">
-                    <span>Frame: {tutorState.frame_to_display} • Timestamp Grounded</span>
+                  <div className="diagram-container">
+                    <img 
+                      src={`${API_BASE}/frames/${tutorState.frame_to_display}`} 
+                      alt="Kinematics Visual Keyframe"
+                      className="diagram-image"
+                      onError={(e) => {
+                        e.target.src = "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=1200&q=80";
+                      }}
+                    />
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </main>
       </div>
+
+      {/* API Key Configuration Modal */}
+      {showKeyModal && (
+        <div className="modal-backdrop" onClick={() => setShowKeyModal(false)}>
+          <div className="modal-body api-modal-card" onClick={(e) => e.stopPropagation()}>
+            <h3>Configure Gemini API Key</h3>
+            <p>Enter your Google Gemini API key to enable live LLM generation and cloud vector embeddings:</p>
+            <input 
+              type="password"
+              placeholder="AIzaSy..."
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              className="api-input"
+            />
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowKeyModal(false)}>Cancel</button>
+              <button className="btn-save" onClick={saveApiKey}>Save & Activate</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Zoom View */}
       {selectedFrameZoom && (
