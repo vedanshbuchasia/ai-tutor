@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import TeacherWhiteboardScene from './TeacherWhiteboardScene';
+import RoughBlackboardEngine from './RoughBlackboardEngine';
 import { 
   Sparkles, 
   Volume2, 
@@ -28,24 +28,20 @@ export default function App() {
   });
 
   const [tutorState, setTutorState] = useState({
-    spoken_dialogue: "Hello Vedansh! Imagine dropping a ball from your left hand while firing another horizontally from your right hand from the same height. Both balls hit the floor at the EXACT same millisecond! Why? Because gravity pulls purely downward on the y-axis, with zero horizontal effect.",
-    whiteboard: {
-      action_name: "TRAJECTORY",
-      math_latex: "\\vec{r}(t) = x(t)\\hat{i} + y(t)\\hat{j} = (u\\cos\\theta)t\\hat{i} + \\left((u\\sin\\theta)t - \\frac{1}{2}gt^2\\right)\\hat{j}",
-      velocity: 24,
-      angle: 45,
-      gravity: 9.8,
-      chalk_notes: [
-        "• Core Law: Horizontal & Vertical motions are 100% independent.",
-        "• Gravity acts purely DOWNWARD (y-axis: ay = -g).",
-        "• Horizontal motion has zero force => moves purely by inertia (ax = 0).",
-        "• Position: r(t) = x(t)î + y(t)ĵ"
-      ],
-      concept_title: "Independence of Perpendicular Motions"
+    spoken_dialogue: "Let's break down 2D projectile motion. Notice how gravity pulls strictly downward on the vertical axis, while the horizontal speed glides forward with zero resistance.",
+    timeline_script: {
+      spoken_audio: "Let's break down 2D projectile motion. Notice how gravity pulls strictly downward on the vertical axis, while the horizontal speed glides forward with zero resistance.",
+      board_actions: [
+        { timestamp_ms: 0, action: "draw_axes", params: { x_label: "X (Range, ax = 0)", y_label: "Y (Height, ay = -g)", style: "hand_drawn" } },
+        { timestamp_ms: 1200, action: "trace_curve", params: { type: "parabola", v0: 26, angle: 45, duration_ms: 3200 } },
+        { timestamp_ms: 2800, action: "write_equation", params: { latex: "1. r(t) = (u·cos θ)t î + ((u·sin θ)t - ½gt²) ĵ", position: { x: 190, y: 18 }, write_duration_ms: 1800 } },
+        { timestamp_ms: 4200, action: "write_equation", params: { latex: "2. Horizontal vx = u·cos θ [CONSTANT]", position: { x: 190, y: 54 }, write_duration_ms: 1500 } },
+        { timestamp_ms: 5600, action: "draw_vector", params: { direction: "down", label: "ay = -g", color: "highlight" } }
+      ]
     },
     concept_question: "If you drop a coin from your hand while throwing another coin horizontally from the same height, which one hits the ground first?",
     action_type: "TEACH",
-    rag_topic: "Independence of Perpendicular Motions"
+    rag_topic: "The Independence of Perpendicular Motions"
   });
 
   const [inputVal, setInputVal] = useState('');
@@ -56,7 +52,7 @@ export default function App() {
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [apiKey, setApiKey] = useState('');
 
-  // 1. Initialize session on mount
+  // 1. Initialize user session on mount
   useEffect(() => {
     fetch(`${API_BASE}/api/v1/session/start`, {
       method: 'POST',
@@ -67,7 +63,7 @@ export default function App() {
       .then(profile => {
         if (profile) setUserProfile(profile);
       })
-      .catch(err => console.log("Backend starting..."));
+      .catch(err => console.log("Backend initializing..."));
 
     handleSendMessage("start", true);
   }, []);
@@ -126,7 +122,7 @@ export default function App() {
         speakText(data.spoken_dialogue);
       }
     } catch (err) {
-      console.warn("Using local adaptive state:", err);
+      console.warn("Using local adaptive timeline:", err);
     } finally {
       setLoading(false);
     }
@@ -141,7 +137,7 @@ export default function App() {
         body: JSON.stringify({ api_key: apiKey })
       });
       setShowKeyModal(false);
-      handleSendMessage("Teach with Google Gemini");
+      handleSendMessage("Connect Gemini LLM timeline engine");
     } catch (e) {
       console.error(e);
     }
@@ -154,7 +150,7 @@ export default function App() {
       case 'REMEDIATE':
         return <span className="badge badge-remediate"><Sparkles size={13}/> Intuitive Coaching</span>;
       default:
-        return <span className="badge badge-teach"><GraduationCap size={13}/> Socratic Conceptual Lesson</span>;
+        return <span className="badge badge-teach"><GraduationCap size={13}/> Socratic Timeline Lesson</span>;
     }
   };
 
@@ -167,8 +163,8 @@ export default function App() {
             <Sparkles size={20} />
           </div>
           <div>
-            <h2>Kinematics AI Concept Tutor</h2>
-            <p className="brand-tagline">Google Gemini Physics Engine • Socratic Conceptual Mastery</p>
+            <h2>Kinematics Rough.js Blackboard Tutor</h2>
+            <p className="brand-tagline">3 Pillars of Animated Blackboard Teaching • LLM Timeline Script</p>
           </div>
         </div>
 
@@ -195,10 +191,10 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main 1-on-1 Split Grid */}
+      {/* Main Split Grid */}
       <div className="personal-main-grid">
         
-        {/* Left Side: Student Profile & Socratic Dialogue */}
+        {/* Left Side: Student Profile & Dialogue */}
         <aside className="personal-avatar-panel">
           
           {/* Student Profile Card */}
@@ -210,7 +206,7 @@ export default function App() {
                 </div>
                 <div>
                   <h4>{userProfile?.name || "Vedansh"}</h4>
-                  <span className="profile-subtitle">Personal Conceptual Coaching</span>
+                  <span className="profile-subtitle">Personal 1-on-1 Session</span>
                 </div>
               </div>
 
@@ -263,7 +259,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Conceptual Discussion Chips */}
+          {/* Quick Prompt Chips */}
           <div className="prompt-chips-row">
             <button onClick={() => handleSendMessage("Both hit at the exact same time because gravity is vertical!")}>
               🎯 Both hit at same time!
@@ -275,7 +271,7 @@ export default function App() {
               💨 Real-World Air Drag
             </button>
             <button onClick={() => handleSendMessage("Understood! Please advance to the next concept.")}>
-              ✅ Next Concept
+              ✅ Next Lesson
             </button>
           </div>
 
@@ -294,16 +290,13 @@ export default function App() {
           </form>
         </aside>
 
-        {/* Right Side: Professor Writing Conceptual Notes on Blackboard */}
-        <TeacherWhiteboardScene 
-          dialogueText={tutorState.spoken_dialogue}
-          mathLatex={tutorState.whiteboard?.math_latex}
-          chalkNotes={tutorState.whiteboard?.chalk_notes}
+        {/* Right Side: Rough.js Animated Blackboard Engine */}
+        <RoughBlackboardEngine 
+          timelineScript={tutorState.timeline_script}
           isSpeaking={isSpeaking}
-          topicTitle={tutorState.whiteboard?.concept_title || tutorState.rag_topic || "Kinematics Conceptual Foundations"}
-          velocity={tutorState.whiteboard?.velocity || 25}
-          angle={tutorState.whiteboard?.angle || 45}
-          gravity={tutorState.whiteboard?.gravity || 9.8}
+          onReplay={() => {
+            if (speechEnabled && tutorState.spoken_dialogue) speakText(tutorState.spoken_dialogue);
+          }}
         />
 
       </div>
